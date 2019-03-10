@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import Phaser from 'phaser';
 
 export const BCELL_TYPE = {
   STONE: 1,
@@ -15,11 +15,12 @@ export default class BCell extends Phaser.Group {
       column
     });
 
-    const tile = this.type === BCELL_TYPE.STONE ? "bricks.png" : "grass.png";
+    const tile = this.type === BCELL_TYPE.STONE ? 'bricks.png' : 'grass.png';
 
-    this.image = this.game.add.sprite(x, y, "spritesheet", tile);
+    this.image = this.game.add.sprite(x, y, 'spritesheet', tile);
     this.image.x += this.image.width * 0.5;
     this.image.y += this.image.height * 0.5;
+    this.image.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
     this.image.anchor.setTo(0.5);
 
     if (this.type === BCELL_TYPE.STONE) {

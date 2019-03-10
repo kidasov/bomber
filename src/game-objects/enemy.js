@@ -13,6 +13,7 @@ export default class Enemy extends Phaser.Group {
     this.game.add.existing(this);
 
     this.image = this.game.add.sprite(cell.image.x, cell.image.y, 'spritesheet', 'nyan-right1.png');
+    this.image.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
     this.add(this.image);
     this.game.physics.enable(this.image, Phaser.Physics.ARCADE);
     this.addAnimations();

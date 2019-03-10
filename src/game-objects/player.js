@@ -7,12 +7,8 @@ export default class Player extends Phaser.Group {
     this.enableBody = true;
     this.physicsBodyType = Phaser.Physics.ARCADE;
 
-    this.image = this.game.add.sprite(
-      cell.image.x,
-      cell.image.y,
-      "spritesheet",
-      "walk-right1.png"
-    );
+    this.image = this.game.add.sprite(cell.image.x, cell.image.y, 'spritesheet', 'walk-right1.png');
+    this.image.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
     this.add(this.image);
     this.game.physics.enable(this.image, Phaser.Physics.ARCADE);
     this.addAnimations();
@@ -32,58 +28,41 @@ export default class Player extends Phaser.Group {
 
     this.cursors = this.game.input.keyboard.createCursorKeys();
     game.input.keyboard.addCallbacks(this, null, ({ keyCode }) => {
-      if (
-        keyCode === 37 ||
-        keyCode === 38 ||
-        keyCode === 39 ||
-        keyCode === 40
-      ) {
+      if (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40) {
         this.image.body.velocity.x = 0;
         this.image.body.velocity.y = 0;
-        this.image.animations.stop("walk-left");
-        this.image.animations.stop("walk-right");
-        this.image.animations.stop("walk-up");
-        this.image.animations.stop("walk-down");
+        this.image.animations.stop('walk-left');
+        this.image.animations.stop('walk-right');
+        this.image.animations.stop('walk-up');
+        this.image.animations.stop('walk-down');
       }
     });
   }
 
   addAnimations() {
-    this.image.animations.add(
-      "walk-right",
-      [1, 2, 3, 4].map(i => `walk-right${i}.png`)
-    );
-    this.image.animations.add(
-      "walk-left",
-      [1, 2, 3, 4].map(i => `walk-left${i}.png`)
-    );
-    this.image.animations.add(
-      "walk-up",
-      [1, 2, 3, 4].map(i => `walk-up${i}.png`)
-    );
-    this.image.animations.add(
-      "walk-down",
-      [1, 2, 3, 4].map(i => `walk-down${i}.png`)
-    );
+    this.image.animations.add('walk-right', [1, 2, 3, 4].map(i => `walk-right${i}.png`));
+    this.image.animations.add('walk-left', [1, 2, 3, 4].map(i => `walk-left${i}.png`));
+    this.image.animations.add('walk-up', [1, 2, 3, 4].map(i => `walk-up${i}.png`));
+    this.image.animations.add('walk-down', [1, 2, 3, 4].map(i => `walk-down${i}.png`));
   }
 
   move() {
     if (this.cursors.left.isDown) {
-      this.image.body.velocity.x = -100;
+      this.image.body.velocity.x = -100 * window.devicePixelRatio;
       this.image.body.velocity.y = 0;
-      this.image.animations.play("walk-left", 30, true);
+      this.image.animations.play('walk-left', 30, true);
     } else if (this.cursors.right.isDown) {
-      this.image.body.velocity.x = 100;
+      this.image.body.velocity.x = 100 * window.devicePixelRatio;
       this.image.body.velocity.y = 0;
-      this.image.animations.play("walk-right", 30, true);
+      this.image.animations.play('walk-right', 30, true);
     } else if (this.cursors.up.isDown) {
-      this.image.body.velocity.y = -100;
+      this.image.body.velocity.y = -100 * window.devicePixelRatio;
       this.image.body.velocity.x = 0;
-      this.image.animations.play("walk-up", 30, true);
+      this.image.animations.play('walk-up', 30, true);
     } else if (this.cursors.down.isDown) {
-      this.image.body.velocity.y = 100;
+      this.image.body.velocity.y = 100 * window.devicePixelRatio;
       this.image.body.velocity.x = 0;
-      this.image.animations.play("walk-down", 30, true);
+      this.image.animations.play('walk-down', 30, true);
     }
   }
 }
