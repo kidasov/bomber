@@ -1,0 +1,141 @@
+import Phaser from 'phaser';
+import Field from '../game-objects/field';
+import Player from '../game-objects/player';
+import Enemies from '../game-objects/enemies';
+
+class Game extends Phaser.State {
+  init() {}
+
+  preload() {}
+
+  create() {
+    const color = Phaser.Color.getRandomColor(255, 255, 255);
+    this.game.stage.backgroundColor = color;
+    this.game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    window.game = this;
+
+    this.stoneGroup = this.game.add.group();
+    this.enemyGroup = this.game.add.group();
+    this.playerGroup = this.game.add.group();
+
+    this.game.field = new Field({
+      game: this.game,
+      rows: 24,
+      columns: 24,
+      collisionGroup: this.stoneGroup
+    });
+    this.game.world.setBounds(0, 0, this.game.field.width, this.game.field.height);
+
+    const grassCell = this.game.field.randomGrassCell;
+
+    this.game.player = new Player({
+      game: this.game,
+      cell: grassCell,
+      collisionGroup: this.playerGroup
+    });
+
+    for (let i = 0; i < this.game.field.cells.length; i++) {
+      for (let j = 0; j < this.game.field.cells[i].length; j++) {
+        if (this.game.field.cells[i][j].image.body) {
+          this.stoneGroup.add(this.game.field.cells[i][j].image);
+        }
+      }
+    }
+
+    this.game.enemies = new Enemies({
+      game: this.game
+    });
+
+    for (let i = 0; i < 3; i++) {
+      this.game.enemies.addEnemy(this.game.field.randomGrassCell);
+      this.enemyGroup.add(this.game.enemies.data[i].image);
+      const enemyBody = this.game.enemies.data[i].image.body;
+      enemyBody.debug = true;
+    }
+
+    this.game.world.bringToTop(this.playerGroup);
+    this.game.world.bringToTop(this.enemyGroup);
+    this.game.world.bringToTop(this.stoneGroup);
+
+    console.log('stongroup', this.stoneGroup);
+  }
+
+  update() {
+    this.game.physics.arcade.collide(this.stoneGroup, this.playerGroup);
+    // this.game.physics.arcade.collide(
+    //   this.stoneGroup,
+    //   this.enemyGroup,
+    //   (sprite1, sprite2) => {
+    //     sprite2.enemy.chooseDirection();
+    //   }
+    // );
+    this.game.physics.arcade.collide(this.playerGroup, this.enemyGroup);
+    this.game.player.move();
+
+    this.game.enemies.data.forEach(enemy => {});
+  }
+
+  normalizeAngle(angle) {
+    while (angle > Math.PI) {
+      angle -= 2 * Math.PI;
+    }
+
+    while (angle < -Math.PI) {
+      angle += 2 * Math.PI;
+    }
+
+    return angle;
+  }
+
+  render() {
+    const player = this.game.player;
+    const playerX = player.image.x;
+    const playerY = player.image.y;
+    this.game.enemies.data.forEach(enemy => {
+      const enemyX = enemy.image.x;
+      const enemyY = enemy.image.y;
+      const dx = playerX - enemyX;
+      const dy = playerY - enemyY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(-dy, dx);
+
+      const computeAngle = (x, y) => this.normalizeAngle(Math.atan2(-y + enemyY, x - enemyX) - angle);
+      const computeDistance = (x, y) => Math.sqrt((x - enemyX) * (x - enemyX) + (y - enemyY) * (y - enemyY));
+
+      const blockingStone = this.stoneGroup.children.find(stone => {
+        const stoneDistance = computeDistance(stone.x, stone.y);
+        if (stoneDistance > distance) {
+          return false;
+        }
+
+        const stoneAngle = computeAngle(stone.x, stone.y);
+
+        if (Math.abs(stoneAngle) > Math.PI / 2) {
+          return false;
+        }
+
+        const sum =
+          Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y - stone.height * 0.5)) +
+          Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y + stone.height * 0.5)) +
+          Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y + stone.height * 0.5)) +
+          Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y - stone.height * 0.5));
+
+        return Math.abs(sum) !== 4;
+      });
+
+      if (blockingStone) {
+        // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, blockingStone.x, blockingStone.y));
+      } else {
+        const playerRow = Math.floor(playerY / this.stoneGroup.children[0].height);
+        const playerColumn = Math.floor(playerX / this.stoneGroup.children[0].width);
+        const cell = this.game.field.cells[playerRow][playerColumn];
+        // this.game.debug.geom(new Phaser.Rectangle(cell.image.x - 0.5 * cell.image.width, cell.image.y - 0.5 * cell.image.height, cell.image.width, cell.image.height));
+        enemy.playerTarget = cell;
+        // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, player.image.x, player.image.y));
+      }
+    });
+  }
+}
+
+export default Game;
