@@ -9,7 +9,7 @@ export default class Bomb extends Phaser.Group {
 
     this.image = this.game.add.sprite(x, y, 'spritesheet', 'bomb1.png');
     this.image.scale.setTo(0.5 * window.devicePixelRatio);
-    this.image.anchor.setTo(0.5 * window.devicePixelRatio);
+    this.image.anchor.setTo(0.5);
     this.image.animations.add('bomb', [1, 2, 3, 4].map(i => `bomb${i}.png`));
     this.game.physics.enable(this.image, Phaser.Physics.ARCADE);
     this.add(this.image);
