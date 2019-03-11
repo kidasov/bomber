@@ -1,3 +1,4 @@
+import Bomb from './bomb';
 export default class Player extends Phaser.Group {
   constructor({ game, cell, collisionGroup }) {
     super(game);
@@ -36,7 +37,18 @@ export default class Player extends Phaser.Group {
         this.image.animations.stop('walk-up');
         this.image.animations.stop('walk-down');
       }
+
+      if (keyCode === Phaser.KeyCode.SPACEBAR) {
+        this.dropBomb(this.currentCell);
+      }
     });
+  }
+
+  get currentCell() {
+    const cell = this.game.field.cells[0][0];
+    const row = Math.floor(this.image.y / cell.image.height);
+    const column = Math.floor(this.image.x / cell.image.width);
+    return this.game.field.cells[row][column];
   }
 
   addAnimations() {
@@ -64,5 +76,10 @@ export default class Player extends Phaser.Group {
       this.image.body.velocity.x = 0;
       this.image.animations.play('walk-down', 30, true);
     }
+  }
+
+  dropBomb(cell) {
+    const bomb = new Bomb({game: this.game, x: cell.image.x, y: cell.image.y});
+    bomb.play();
   }
 }
