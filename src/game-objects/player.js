@@ -28,18 +28,20 @@ export default class Player extends Phaser.Group {
     this.collisionGroup.add(this.image);
 
     this.cursors = this.game.input.keyboard.createCursorKeys();
-    game.input.keyboard.addCallbacks(this, null, ({ keyCode }) => {
+    game.input.keyboard.addCallbacks(this, ({ keyCode }) => {
+      if (keyCode === Phaser.Keyboard.SPACEBAR) {
+        if (!this.currentCell.hasBomb) {
+          this.scene.dropBomb(this.currentCell);
+        }
+      }
+    }, ({ keyCode }) => {
       if (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40) {
-        this.image.body.velocity.x = 0;
-        this.image.body.velocity.y = 0;
         this.image.animations.stop('walk-left');
         this.image.animations.stop('walk-right');
         this.image.animations.stop('walk-up');
         this.image.animations.stop('walk-down');
       }
     });
-
-    this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
   }
 
   get currentCell() {
@@ -50,6 +52,7 @@ export default class Player extends Phaser.Group {
   }
 
   addAnimations() {
+    this.animationsName = ['walk-right', 'walk-left', 'walk-up', 'walk-down'];
     this.image.animations.add('walk-right', [1, 2, 3, 4].map(i => `walk-right${i}.png`));
     this.image.animations.add('walk-left', [1, 2, 3, 4].map(i => `walk-left${i}.png`));
     this.image.animations.add('walk-up', [1, 2, 3, 4].map(i => `walk-up${i}.png`));
@@ -57,26 +60,42 @@ export default class Player extends Phaser.Group {
   }
 
   move() {
+    let horizontalSpeed = 0;
+    let verticalSpeed = 0;
+    let animation = null;
     if (this.cursors.left.isDown) {
-      this.image.body.velocity.x = -100 * window.devicePixelRatio;
-      this.image.body.velocity.y = 0;
-      this.image.animations.play('walk-left', 30, true);
-    } else if (this.cursors.right.isDown) {
-      this.image.body.velocity.x = 100 * window.devicePixelRatio;
-      this.image.body.velocity.y = 0;
-      this.image.animations.play('walk-right', 30, true);
-    } else if (this.cursors.up.isDown) {
-      this.image.body.velocity.y = -100 * window.devicePixelRatio;
-      this.image.body.velocity.x = 0;
-      this.image.animations.play('walk-up', 30, true);
-    } else if (this.cursors.down.isDown) {
-      this.image.body.velocity.y = 100 * window.devicePixelRatio;
-      this.image.body.velocity.x = 0;
-      this.image.animations.play('walk-down', 30, true);
+      horizontalSpeed -= 100;
+      animation = 'walk-left';
     }
 
-    if (this.spaceKey.isDown && !this.currentCell.hasBomb) {
-      this.scene.dropBomb(this.currentCell);
+    if (this.cursors.right.isDown) {
+      horizontalSpeed += 100;
+      animation = 'walk-right';
     }
+
+    if (this.cursors.up.isDown) {
+      verticalSpeed -= 100;
+      animation = 'walk-up';
+    }
+
+    if (this.cursors.down.isDown) {
+      verticalSpeed += 100;
+      animation = 'walk-down';
+    }
+
+    if (horizontalSpeed && verticalSpeed) {
+      horizontalSpeed /= Math.sqrt(2);
+      verticalSpeed /= Math.sqrt(2);
+    }
+
+    this.image.body.velocity.x = horizontalSpeed * window.devicePixelRatio;
+    this.image.body.velocity.y = verticalSpeed * window.devicePixelRatio;
+    this.image.animations.play(animation, 30, true);
+
+    this.animationsName.forEach(name => {
+      if (name !== animation) {
+        this.image.animations.stop(name);
+      }
+    });
   }
 }

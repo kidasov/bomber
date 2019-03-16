@@ -56,9 +56,8 @@ class Game extends Phaser.State {
     window.addEnemies = count => {
       for (let i = 0; i < count; i++) {
         this.game.enemies.addEnemy(this.game.field.randomGrassCell);
-        this.enemyGroup.add(this.game.enemies.data[i].image);
-        const enemyBody = this.game.enemies.data[i].image.body;
-        enemyBody.debug = true;
+        const index = this.game.enemies.data.length - 1;
+        this.enemyGroup.add(this.game.enemies.data[index].image);
       }
     };
 

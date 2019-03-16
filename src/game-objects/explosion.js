@@ -23,7 +23,7 @@ export default class Explosion extends Phaser.Group {
     let hasBottom = true;
 
     for (let i = 1; i <= radius; i++) {
-      if (cell.column - i > 0 && hasLeft) {
+      if (cell.column - i >= 0 && hasLeft) {
         const leftCell = this.game.field.cells[cell.row][cell.column - i];
         const leftMiddle = this.game.add.sprite(cell.image.x - cell.image.width * i, cell.image.y, 'spritesheet', i === radius ? 'explosion-end.png' : 'explosion-middle.png');
         leftMiddle.anchor.setTo(0.5);
@@ -54,7 +54,7 @@ export default class Explosion extends Phaser.Group {
         }
       }
 
-      if (cell.row - i > 0 && hasTop) {
+      if (cell.row - i >= 0 && hasTop) {
         const topCell = this.game.field.cells[cell.row - i][cell.column];
         const topMiddle = this.game.add.sprite(cell.image.x, cell.image.y - cell.image.height * i, 'spritesheet', i === radius ? 'explosion-end.png' : 'explosion-middle.png');
         topMiddle.anchor.setTo(0.5);
