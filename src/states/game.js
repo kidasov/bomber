@@ -2,6 +2,10 @@ import Phaser from 'phaser';
 import Field from '../game-objects/field';
 import Player from '../game-objects/player';
 import Enemies from '../game-objects/enemies';
+import Bomb from '../game-objects/bomb';
+import Explosion from '../game-objects/explosion';
+import BCell, { BCELL_TYPE } from '../game-objects/bcell';
+import { BOMB_TIMER } from '../consts/gameplay';
 
 class Game extends Phaser.State {
   init() {}
@@ -18,6 +22,8 @@ class Game extends Phaser.State {
     this.stoneGroup = this.game.add.group();
     this.enemyGroup = this.game.add.group();
     this.playerGroup = this.game.add.group();
+    this.bombGroup = this.game.add.group();
+    this.explosionGroup = this.game.add.group();
 
     this.game.field = new Field({
       game: this.game,
@@ -30,7 +36,7 @@ class Game extends Phaser.State {
     const grassCell = this.game.field.randomGrassCell;
 
     this.game.player = new Player({
-      game: this.game,
+      scene: this,
       cell: grassCell,
       collisionGroup: this.playerGroup
     });
@@ -47,18 +53,59 @@ class Game extends Phaser.State {
       game: this.game
     });
 
-    for (let i = 0; i < 3; i++) {
-      this.game.enemies.addEnemy(this.game.field.randomGrassCell);
-      this.enemyGroup.add(this.game.enemies.data[i].image);
-      const enemyBody = this.game.enemies.data[i].image.body;
-      enemyBody.debug = true;
-    }
+    window.addEnemies = count => {
+      for (let i = 0; i < count; i++) {
+        this.game.enemies.addEnemy(this.game.field.randomGrassCell);
+        this.enemyGroup.add(this.game.enemies.data[i].image);
+        const enemyBody = this.game.enemies.data[i].image.body;
+        enemyBody.debug = true;
+      }
+    };
+
+    window.explosionRadius = 2;
+    window.bombTimer = BOMB_TIMER;
+
+    window.addEnemies(3);
 
     this.game.world.bringToTop(this.playerGroup);
     this.game.world.bringToTop(this.enemyGroup);
     this.game.world.bringToTop(this.stoneGroup);
+    this.game.world.bringToTop(this.bombGroup);
+    this.game.world.bringToTop(this.explosionGroup);
 
     console.log('stongroup', this.stoneGroup);
+  }
+
+  dropBomb(cell) {
+    const bomb = new Bomb({ scene: this, cell });
+    this.bombGroup.add(bomb.image);
+  }
+
+  destroyStone(cell) {
+    cell.image.destroy();
+    cell.destroy();
+
+    const { row, column, image } = cell;
+    const grassCell = new BCell({
+      game: this.game,
+      x: image.x - image.width * 0.5,
+      y: image.y - image.height * 0.5,
+      type: BCELL_TYPE.GRASS,
+      row,
+      column
+    });
+    this.game.field.cells[row][column] = grassCell;
+    this.game.field.add(grassCell);
+    this.game.field.computeSuccessors();
+  }
+
+  createExplosion(cell) {
+    const explosion = new Explosion({ scene: this, cell, radius: window.explosionRadius });
+    this.explosionGroup.add(explosion);
+    setTimeout(() => {
+      const explosionTween = this.game.add.tween(explosion).to({ alpha: 0 }, 100, 'Linear', true);
+      explosionTween.onComplete.add(() => { explosion.destroy(); });
+    }, 400);
   }
 
   update() {
@@ -71,6 +118,14 @@ class Game extends Phaser.State {
     //   }
     // );
     this.game.physics.arcade.collide(this.playerGroup, this.enemyGroup);
+    this.game.physics.arcade.collide(this.playerGroup, this.bombGroup);
+    this.game.physics.arcade.collide(this.explosionGroup, this.enemyGroup, (sprite1, sprite2) => {
+      sprite2.enemy.destroy();
+    });
+    this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, (sprite1, sprite2) => {
+      console.log('game', this.game);
+      sprite2.bomb.explode();
+    });
     this.game.player.move();
 
     this.game.enemies.data.forEach(enemy => {});

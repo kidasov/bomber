@@ -55,7 +55,9 @@ export default class Enemy extends Phaser.Group {
       this.target = this.playerTarget;
       speed = 500;
       path = this.game.field.aStar(origin, this.target);
-    } else {
+    }
+
+    if (path === null) {
       this.playerTarget = null;
       speed = 1000;
       const reachableCells = this.game.field.getReachableCells(origin);
@@ -87,12 +89,26 @@ export default class Enemy extends Phaser.Group {
         this.image.animations.play('nyan-left', 30, true);
       }
 
-      const tween = this.game.add.tween(this.image).to({ x: nextTarget.image.x, y: nextTarget.image.y }, speed);
+      this.tween = this.game.add.tween(this.image).to({ x: nextTarget.image.x, y: nextTarget.image.y }, speed);
 
-      tween.onComplete.add(next);
-      tween.start();
+      this.tween.onComplete.add(next);
+      this.tween.start();
     };
 
     next();
+  }
+
+  destroy() {
+    console.log('destroy here');
+    if (this.tween) {
+      this.tween.stop();
+    }
+    this.image.animations.stop();
+    this.tween = this.game.add.tween(this.image).to({ alpha: 0 }, 400, 'Linear', true);
+    this.tween.onComplete.add(() => {
+      this.image.destroy();
+      super.destroy();
+    });
+    this.tween.start();
   }
 }

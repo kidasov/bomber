@@ -1,8 +1,8 @@
-import Bomb from './bomb';
 export default class Player extends Phaser.Group {
-  constructor({ game, cell, collisionGroup }) {
+  constructor({ scene, cell, collisionGroup }) {
+    const { game } = scene;
     super(game);
-    Object.assign(this, { game, cell, collisionGroup });
+    Object.assign(this, { game, scene, cell, collisionGroup });
 
     this.game.add.existing(this);
     this.enableBody = true;
@@ -37,11 +37,9 @@ export default class Player extends Phaser.Group {
         this.image.animations.stop('walk-up');
         this.image.animations.stop('walk-down');
       }
-
-      if (keyCode === Phaser.KeyCode.SPACEBAR) {
-        this.dropBomb(this.currentCell);
-      }
     });
+
+    this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
   }
 
   get currentCell() {
@@ -76,10 +74,9 @@ export default class Player extends Phaser.Group {
       this.image.body.velocity.x = 0;
       this.image.animations.play('walk-down', 30, true);
     }
-  }
 
-  dropBomb(cell) {
-    const bomb = new Bomb({game: this.game, x: cell.image.x, y: cell.image.y});
-    bomb.play();
+    if (this.spaceKey.isDown && !this.currentCell.hasBomb) {
+      this.scene.dropBomb(this.currentCell);
+    }
   }
 }

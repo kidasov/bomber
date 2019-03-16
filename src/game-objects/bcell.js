@@ -18,10 +18,11 @@ export default class BCell extends Phaser.Group {
     const tile = this.type === BCELL_TYPE.STONE ? 'bricks.png' : 'grass.png';
 
     this.image = this.game.add.sprite(x, y, 'spritesheet', tile);
+    this.image.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
     this.image.x += this.image.width * 0.5;
     this.image.y += this.image.height * 0.5;
-    this.image.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
     this.image.anchor.setTo(0.5);
+    this.hasBomb = false;
 
     if (this.type === BCELL_TYPE.STONE) {
       this.game.physics.enable(this.image, Phaser.Physics.ARCADE);

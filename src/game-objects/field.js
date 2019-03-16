@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import BCell, { BCELL_TYPE } from './bcell';
 
 export default class Field extends Phaser.Group {
-  constructor({ game, rows, columns, collisionGroup, playerCollisionGroup }) {
+  constructor({ game, rows, columns, collisionGroup }) {
     super(game);
     Object.assign(this, {
       game,
@@ -72,19 +72,31 @@ export default class Field extends Phaser.Group {
       y += cell.height;
     }
 
+    this.computeSuccessors();
+  }
+
+  checkCell(row, column) {
+    if (row >= 0 && row < this.rows && column >= 0 && column < this.columns) {
+      const cell = this.cells[row][column];
+      return cell.type !== BCELL_TYPE.STONE && !cell.hasBomb;
+    }
+    return false;
+  }
+
+  computeSuccessors() {
     for (let i = 0; i < this.rows; i++) {
       for (let j = 0; j < this.columns; j++) {
-        this.initSuccessors(this.cells[i][j], stoneMap);
+        this.initSuccessors(this.cells[i][j]);
       }
     }
   }
 
-  initSuccessors(cell, stoneMap) {
+  initSuccessors(cell) {
     const { row, column } = cell;
-    const canGoDown = row + 1 < this.rows && stoneMap[row + 1][column] !== BCELL_TYPE.STONE;
-    const canGoUp = row - 1 >= 0 && stoneMap[row - 1][column] !== BCELL_TYPE.STONE;
-    const canGoRight = column + 1 < this.columns && stoneMap[row][column + 1] !== BCELL_TYPE.STONE;
-    const canGoLeft = column - 1 >= 0 && stoneMap[row][column - 1] !== BCELL_TYPE.STONE;
+    const canGoDown = this.checkCell(row + 1, column);
+    const canGoUp = this.checkCell(row - 1, column);
+    const canGoRight = this.checkCell(row, column + 1);
+    const canGoLeft = this.checkCell(row, column - 1);
 
     cell.successors = [];
 
@@ -104,19 +116,19 @@ export default class Field extends Phaser.Group {
       cell.successors.push(this.cells[row][column - 1]);
     }
 
-    if (canGoDown && canGoLeft && stoneMap[row + 1][column - 1] !== BCELL_TYPE.STONE) {
+    if (canGoDown && canGoLeft && this.checkCell(row + 1, column - 1)) {
       cell.successors.push(this.cells[row + 1][column - 1]);
     }
 
-    if (canGoDown && canGoRight && stoneMap[row + 1][column + 1] !== BCELL_TYPE.STONE) {
+    if (canGoDown && canGoRight && this.checkCell(row + 1, column + 1)) {
       cell.successors.push(this.cells[row + 1][column + 1]);
     }
 
-    if (canGoUp && canGoLeft && stoneMap[row - 1][column - 1] !== BCELL_TYPE.STONE) {
+    if (canGoUp && canGoLeft && this.checkCell(row - 1, column - 1)) {
       cell.successors.push(this.cells[row - 1][column - 1]);
     }
 
-    if (canGoUp && canGoRight && stoneMap[row - 1][column + 1] !== BCELL_TYPE.STONE) {
+    if (canGoUp && canGoRight && this.checkCell(row - 1, column + 1)) {
       cell.successors.push(this.cells[row - 1][column + 1]);
     }
   }
@@ -163,16 +175,6 @@ export default class Field extends Phaser.Group {
 
     const path = search(start);
     return path ? path.slice(1) : null;
-  }
-
-  isDestinationVisible(source, destination, radius) {
-    const dx = source.x - destination.x;
-    const dy = source.y - destination.y;
-    const distance = Math.sqrt(dy * dy + dx * dx);
-    const offsetX = (radius * dy) / distance;
-    const offsetY = (radius * dx) / distance;
-    const pointTwo = { x: source.x + offsetX, y: source.y + offsetY };
-    const pointThree = { x: source.x - offsetX, y: source.y - offsetY };
   }
 
   aStar(start, finish) {
