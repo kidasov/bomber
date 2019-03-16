@@ -2,10 +2,12 @@ import Phaser from 'phaser';
 import BCell, { BCELL_TYPE } from './bcell';
 
 export default class Field extends Phaser.Group {
-  constructor({ game, rows, columns, collisionGroup }) {
+  constructor({ scene, rows, columns, collisionGroup }) {
+    const { game } = scene;
     super(game);
     Object.assign(this, {
       game,
+      scene,
       rows,
       columns,
       collisionGroup
@@ -56,7 +58,7 @@ export default class Field extends Phaser.Group {
       this.cells[i] = [];
       for (let j = 0; j < this.columns; j++) {
         cell = new BCell({
-          game: this.game,
+          scene: this.scene,
           x,
           y,
           type: stoneMap[i][j],
@@ -66,7 +68,6 @@ export default class Field extends Phaser.Group {
 
         this.cells[i][j] = cell;
         this.add(cell);
-
         x += cell.width;
       }
       x = 0;

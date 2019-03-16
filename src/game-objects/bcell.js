@@ -6,10 +6,12 @@ export const BCELL_TYPE = {
 };
 
 export default class BCell extends Phaser.Group {
-  constructor({ game, x, y, type, row, column }) {
+  constructor({ scene, x, y, type, row, column }) {
+    const { game } = scene;
     super(game);
     Object.assign(this, {
       game,
+      scene,
       type,
       row,
       column
@@ -29,6 +31,5 @@ export default class BCell extends Phaser.Group {
       this.image.body.immovable = true;
     }
     this.add(this.image);
-    this.game.add.existing(this);
   }
 }

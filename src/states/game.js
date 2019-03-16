@@ -26,9 +26,9 @@ class Game extends Phaser.State {
     this.explosionGroup = this.game.add.group();
 
     this.game.field = new Field({
-      game: this.game,
-      rows: 64,
-      columns: 64,
+      scene: this,
+      rows: 32,
+      columns: 32,
       collisionGroup: this.stoneGroup
     });
     this.game.world.setBounds(0, 0, this.game.field.width, this.game.field.height);
@@ -86,7 +86,7 @@ class Game extends Phaser.State {
 
     const { row, column, image } = cell;
     const grassCell = new BCell({
-      game: this.game,
+      scene: this,
       x: image.x - image.width * 0.5,
       y: image.y - image.height * 0.5,
       type: BCELL_TYPE.GRASS,
@@ -167,11 +167,11 @@ class Game extends Phaser.State {
       if (blockingStone) {
         // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, blockingStone.x, blockingStone.y));
       } else {
-        const playerRow = Math.floor(playerY / this.stoneGroup.children[0].height);
-        const playerColumn = Math.floor(playerX / this.stoneGroup.children[0].width);
-        const cell = this.game.field.cells[playerRow][playerColumn];
-        // this.game.debug.geom(new Phaser.Rectangle(cell.image.x - 0.5 * cell.image.width, cell.image.y - 0.5 * cell.image.height, cell.image.width, cell.image.height));
-        enemy.playerTarget = cell;
+        // const playerRow = Math.floor(playerY / this.stoneGroup.children[0].height);
+        // const playerColumn = Math.floor(playerX / this.stoneGroup.children[0].width);
+        // const cell = this.game.field.cells[playerRow][playerColumn];
+        // console.log('cell', cell);
+        // enemy.playerTarget = cell;
         // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, player.image.x, player.image.y));
       }
     });
