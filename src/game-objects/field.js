@@ -32,8 +32,9 @@ export default class Field extends Phaser.Group {
 
   draw() {
     const stoneMap = Array.from({ length: this.rows }, () => Array.from({ length: this.columns }, () => 1));
+    const total = this.rows * this.columns * 0.3;
 
-    for (let k = 0; k < 16 * 8; k++) {
+    for (let k = 0; k < total; k++) {
       const pattern = patterns[Math.floor(Math.random() * patterns.length)];
       const x = Math.floor(Math.random() * (this.columns - pattern[0].length + 1));
       const y = Math.floor(Math.random() * (this.rows - pattern.length + 1));

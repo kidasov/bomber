@@ -27,8 +27,8 @@ class Game extends Phaser.State {
 
     this.game.field = new Field({
       game: this.game,
-      rows: 24,
-      columns: 24,
+      rows: 64,
+      columns: 64,
       collisionGroup: this.stoneGroup
     });
     this.game.world.setBounds(0, 0, this.game.field.width, this.game.field.height);
@@ -40,6 +40,8 @@ class Game extends Phaser.State {
       cell: grassCell,
       collisionGroup: this.playerGroup
     });
+
+    this.game.camera.follow(this.game.player.image);
 
     for (let i = 0; i < this.game.field.cells.length; i++) {
       for (let j = 0; j < this.game.field.cells[i].length; j++) {
@@ -71,8 +73,6 @@ class Game extends Phaser.State {
     this.game.world.bringToTop(this.stoneGroup);
     this.game.world.bringToTop(this.bombGroup);
     this.game.world.bringToTop(this.explosionGroup);
-
-    console.log('stongroup', this.stoneGroup);
   }
 
   dropBomb(cell) {
@@ -109,40 +109,26 @@ class Game extends Phaser.State {
 
   update() {
     this.game.physics.arcade.collide(this.stoneGroup, this.playerGroup);
-    // this.game.physics.arcade.collide(
-    //   this.stoneGroup,
-    //   this.enemyGroup,
-    //   (sprite1, sprite2) => {
-    //     sprite2.enemy.chooseDirection();
-    //   }
-    // );
     this.game.physics.arcade.collide(this.playerGroup, this.enemyGroup);
     this.game.physics.arcade.collide(this.playerGroup, this.bombGroup);
     this.game.physics.arcade.collide(this.explosionGroup, this.enemyGroup, (sprite1, sprite2) => {
       sprite2.enemy.destroy();
     });
     this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, (sprite1, sprite2) => {
-      console.log('game', this.game);
       sprite2.bomb.explode();
     });
     this.game.player.move();
 
-    this.game.enemies.data.forEach(enemy => {});
-  }
+    // this.bombGroup.children.forEach(ch => {
+    //   this.game.debug.body(ch);
+    // });
 
-  normalizeAngle(angle) {
-    while (angle > Math.PI) {
-      angle -= 2 * Math.PI;
-    }
+    // for (let i = 0; i < this.explosionGroup.children.length; i++) {
+    //   this.explosionGroup.children[i].forEach(ch => {
+    //     this.game.debug.body(ch);
+    //   });
+    // }
 
-    while (angle < -Math.PI) {
-      angle += 2 * Math.PI;
-    }
-
-    return angle;
-  }
-
-  render() {
     const player = this.game.player;
     const playerX = player.image.x;
     const playerY = player.image.y;
@@ -189,6 +175,18 @@ class Game extends Phaser.State {
         // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, player.image.x, player.image.y));
       }
     });
+  }
+
+  normalizeAngle(angle) {
+    while (angle > Math.PI) {
+      angle -= 2 * Math.PI;
+    }
+
+    while (angle < -Math.PI) {
+      angle += 2 * Math.PI;
+    }
+
+    return angle;
   }
 }
 

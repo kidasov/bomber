@@ -72,7 +72,6 @@ export default class Enemy extends Phaser.Group {
         i >= path.length ||
         (this.playerTarget !== null && !this.isSameCoordinate(this.playerTarget.image, this.target.image))
       ) {
-        console.log('Choose new direction');
         this.chooseTarget(path[i - 1]);
         return;
       }
