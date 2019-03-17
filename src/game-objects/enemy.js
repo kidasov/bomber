@@ -1,10 +1,3 @@
-const DIRECTIONS = {
-  UP: 1,
-  DOWN: -1,
-  LEFT: 2,
-  RIGHT: -2
-};
-
 export default class Enemy extends Phaser.Group {
   constructor({ game, cell, collisionGroup }) {
     super(game);
@@ -12,12 +5,11 @@ export default class Enemy extends Phaser.Group {
 
     this.game.add.existing(this);
 
-    this.image = this.game.add.sprite(cell.image.x, cell.image.y, 'spritesheet', 'nyan-right1.png');
-    this.image.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
+    this.image = this.game.add.sprite(cell.image.x, cell.image.y, 'spritesheet', 'pacman-right1.png');
+    this.image.scale.setTo(window.devicePixelRatio * 0.5, window.devicePixelRatio * 0.5);
     this.add(this.image);
     this.game.physics.enable(this.image, Phaser.Physics.ARCADE);
     this.addAnimations();
-    this.image.body.collideWorldBounds = true;
     this.image.body.fixedRotation = true;
     this.image.enemy = this;
     this.image.body.onWorldBounds = new Phaser.Signal();
@@ -38,10 +30,10 @@ export default class Enemy extends Phaser.Group {
   }
 
   addAnimations() {
-    this.image.animations.add('nyan-right', [1, 2, 3, 4].map(i => `nyan-right${i}.png`));
-    this.image.animations.add('nyan-left', [1, 2, 3, 4].map(i => `nyan-left${i}.png`));
-    this.image.animations.add('nyan-up', [1, 2, 3, 4].map(i => `nyan-up${i}.png`));
-    this.image.animations.add('nyan-down', [1, 2, 3, 4].map(i => `nyan-down${i}.png`));
+    this.image.animations.add('pacman-right', [1, 2, 3, 4].map(i => `pacman-right${i}.png`));
+    this.image.animations.add('pacman-left', [1, 2, 3, 4].map(i => `pacman-left${i}.png`));
+    this.image.animations.add('pacman-up', [1, 2, 3, 4].map(i => `pacman-up${i}.png`));
+    this.image.animations.add('pacman-down', [1, 2, 3, 4].map(i => `pacman-down${i}.png`));
   }
 
   isSameCoordinate(obj, obj2) {
@@ -53,13 +45,13 @@ export default class Enemy extends Phaser.Group {
     let speed = null;
     if (this.playerTarget && !this.isSameCoordinate(origin.image, this.playerTarget.image)) {
       this.target = this.playerTarget;
-      speed = 500;
+      speed = 400;
       path = this.game.field.aStar(origin, this.target);
     }
 
     if (path === null) {
       this.playerTarget = null;
-      speed = 1000;
+      speed = 900;
       const reachableCells = this.game.field.getReachableCells(origin);
       this.target = reachableCells[Math.floor(Math.random() * reachableCells.length)];
       path = this.game.field.dfs(origin, this.target);
@@ -79,13 +71,13 @@ export default class Enemy extends Phaser.Group {
       const nextTarget = path[i++];
       const prevTarget = i > 1 ? path[i - 2] : origin;
       if (nextTarget.row - prevTarget.row === 1) {
-        this.image.animations.play('nyan-down', 30, true);
+        this.image.animations.play('pacman-down', 30, true);
       } else if (nextTarget.row - prevTarget.row === -1) {
-        this.image.animations.play('nyan-up', 30, true);
+        this.image.animations.play('pacman-up', 30, true);
       } else if (nextTarget.column - prevTarget.column === 1) {
-        this.image.animations.play('nyan-right', 30, true);
+        this.image.animations.play('pacman-right', 30, true);
       } else if (nextTarget.column - prevTarget.column === -1) {
-        this.image.animations.play('nyan-left', 30, true);
+        this.image.animations.play('pacman-left', 30, true);
       }
 
       this.tween = this.game.add.tween(this.image).to({ x: nextTarget.image.x, y: nextTarget.image.y }, speed);
@@ -97,16 +89,17 @@ export default class Enemy extends Phaser.Group {
     next();
   }
 
-  destroy() {
-    console.log('destroy here');
+  destroy(cb) {
     if (this.tween) {
       this.tween.stop();
     }
     this.image.animations.stop();
+    this.image.body.immovable = true;
     this.tween = this.game.add.tween(this.image).to({ alpha: 0 }, 400, 'Linear', true);
     this.tween.onComplete.add(() => {
       this.image.destroy();
       super.destroy();
+      cb && cb();
     });
     this.tween.start();
   }

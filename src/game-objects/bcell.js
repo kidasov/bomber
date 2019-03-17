@@ -25,6 +25,7 @@ export default class BCell extends Phaser.Group {
     this.image.y += this.image.height * 0.5;
     this.image.anchor.setTo(0.5);
     this.hasBomb = false;
+    this.hasBonus = false;
 
     if (this.type === BCELL_TYPE.STONE) {
       this.game.physics.enable(this.image, Phaser.Physics.ARCADE);

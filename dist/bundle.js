@@ -3183,6 +3183,7 @@ var BCell = function (_Phaser$Group) {
     _this.image.y += _this.image.height * 0.5;
     _this.image.anchor.setTo(0.5);
     _this.hasBomb = false;
+    _this.hasBonus = false;
 
     if (_this.type === BCELL_TYPE.STONE) {
       _this.game.physics.enable(_this.image, _phaser2.default.Physics.ARCADE);
@@ -10822,7 +10823,7 @@ var Bombermine = function (_Phaser$Game) {
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10840,30 +10841,30 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var Boot = function (_Phaser$State) {
-    _inherits(Boot, _Phaser$State);
+  _inherits(Boot, _Phaser$State);
 
-    function Boot() {
-        _classCallCheck(this, Boot);
+  function Boot() {
+    _classCallCheck(this, Boot);
 
-        return _possibleConstructorReturn(this, (Boot.__proto__ || Object.getPrototypeOf(Boot)).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Boot.__proto__ || Object.getPrototypeOf(Boot)).apply(this, arguments));
+  }
+
+  _createClass(Boot, [{
+    key: 'init',
+    value: function init() {}
+  }, {
+    key: 'preload',
+    value: function preload() {}
+  }, {
+    key: 'create',
+    value: function create() {
+      this.game.scale.scaleMode = _phaser2.default.ScaleManager.SHOW_ALL;
+      this.game.input.maxPointers = 1;
+      this.game.state.start('preload');
     }
+  }]);
 
-    _createClass(Boot, [{
-        key: 'init',
-        value: function init() {}
-    }, {
-        key: 'preload',
-        value: function preload() {}
-    }, {
-        key: 'create',
-        value: function create() {
-            this.game.scale.scaleMode = _phaser2.default.ScaleManager.SHOW_ALL;
-            this.game.input.maxPointers = 1;
-            this.game.state.start('preload');
-        }
-    }]);
-
-    return Boot;
+  return Boot;
 }(_phaser2.default.State);
 
 exports.default = Boot;
@@ -10908,28 +10909,33 @@ var Preload = function (_Phaser$State) {
   }
 
   _createClass(Preload, [{
-    key: "init",
+    key: 'init',
     value: function init() {}
   }, {
-    key: "preload",
+    key: 'preload',
     value: function preload() {
       var assets = [{
-        type: "image",
-        cache: "game_bg",
-        path: "assets/backgrounds/game_bg" + this.game.strDisplaySuffix + ".jpg"
+        type: 'image',
+        cache: 'game_bg',
+        path: 'assets/backgrounds/game_bg' + this.game.strDisplaySuffix + '.jpg'
       }, {
-        type: "atlasJSONHash",
-        cache: "spritesheet",
-        path: "assets/spritesheets/spritesheet" + this.game.strDisplaySuffix + ".png",
-        path2: "assets/spritesheets/spritesheet" + this.game.strDisplaySuffix + ".json"
+        type: 'atlasJSONHash',
+        cache: 'spritesheet',
+        path: 'assets/spritesheets/spritesheet' + this.game.strDisplaySuffix + '.png',
+        path2: 'assets/spritesheets/spritesheet' + this.game.strDisplaySuffix + '.json'
+      }, {
+        type: 'bitmapFont',
+        cache: 'desyrel',
+        path: 'assets/fonts/desyrel-pink.png',
+        path2: 'assets/fonts/desyrel-pink.xml'
       }];
-
+      // this.game.load.bitmapFont('shortStack', 'assets/fonts/shortStack.png', 'assets/fonts/shortStack.xml');
       this.game.loadAssets(assets);
     }
   }, {
-    key: "create",
+    key: 'create',
     value: function create() {
-      this.game.state.start("game");
+      this.game.state.start('game');
     }
   }]);
 
@@ -10986,6 +10992,10 @@ var _bcell2 = _interopRequireDefault(_bcell);
 
 var _gameplay = __webpack_require__(/*! ../consts/gameplay */ 343);
 
+var _bonus = __webpack_require__(/*! ../game-objects/bonus */ 351);
+
+var _bonus2 = _interopRequireDefault(_bonus);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -11020,16 +11030,27 @@ var Game = function (_Phaser$State) {
 
       window.game = this;
 
+      this.grassGroup = this.game.add.group();
       this.stoneGroup = this.game.add.group();
       this.enemyGroup = this.game.add.group();
       this.playerGroup = this.game.add.group();
       this.bombGroup = this.game.add.group();
+      this.bonusGroup = this.game.add.group();
       this.explosionGroup = this.game.add.group();
+      this.game.forceSingleUpdate = false;
+      this.allGroup = this.game.add.group();
+      this.allGroup.add(this.grassGroup);
+      this.allGroup.add(this.playerGroup);
+      this.allGroup.add(this.enemyGroup);
+      this.allGroup.add(this.stoneGroup);
+      this.allGroup.add(this.bombGroup);
+      this.allGroup.add(this.bonusGroup);
+      this.allGroup.add(this.explosionGroup);
 
       this.game.field = new _field2.default({
         scene: this,
-        rows: 32,
-        columns: 32,
+        rows: 40,
+        columns: 40,
         collisionGroup: this.stoneGroup
       });
       this.game.world.setBounds(0, 0, this.game.field.width, this.game.field.height);
@@ -11048,6 +11069,8 @@ var Game = function (_Phaser$State) {
         for (var j = 0; j < this.game.field.cells[i].length; j++) {
           if (this.game.field.cells[i][j].image.body) {
             this.stoneGroup.add(this.game.field.cells[i][j].image);
+          } else {
+            this.grassGroup.add(this.game.field.cells[i][j].image);
           }
         }
       }
@@ -11067,13 +11090,20 @@ var Game = function (_Phaser$State) {
       window.explosionRadius = 2;
       window.bombTimer = _gameplay.BOMB_TIMER;
 
-      window.addEnemies(3);
+      window.addEnemies(10);
 
-      this.game.world.bringToTop(this.playerGroup);
-      this.game.world.bringToTop(this.enemyGroup);
-      this.game.world.bringToTop(this.stoneGroup);
-      this.game.world.bringToTop(this.bombGroup);
-      this.game.world.bringToTop(this.explosionGroup);
+      this.enemykilled = 0;
+
+      var textX = (this.game.camera.x + this.game.camera.width) * 0.5;
+      var textY = (this.game.camera.y + this.game.camera.height) * 0.5;
+
+      this.gameOverText = this.game.add.bitmapText(textX, textY, 'desyrel', 'Game Over', 64);
+      this.gameOverText.anchor.setTo(0.5);
+      this.gameOverText.alpha = 0;
+
+      this.enemyKilledText = this.game.add.bitmapText(textX, textY + 100, 'desyrel', 'Enemy killed: ' + this.enemykilled, 64);
+      this.enemyKilledText.anchor.setTo(0.5);
+      this.enemyKilledText.alpha = 0;
     }
   }, {
     key: 'dropBomb',
@@ -11086,10 +11116,42 @@ var Game = function (_Phaser$State) {
     value: function destroyStone(cell) {
       cell.image.destroy();
       cell.destroy();
-
       var row = cell.row,
           column = cell.column,
           image = cell.image;
+
+
+      var chance = Math.round(Math.random() * 100);
+
+      if (chance <= 25) {
+        var bonusType = _bonus.BONUS_TYPE.SCORE;
+
+        var bonusTypeChance = Math.round(Math.random() * 100);
+
+        if (bonusTypeChance > 50 && bonusTypeChance < 75) {
+          bonusType = _bonus.BONUS_TYPE.EXPLOSION_RADIUS;
+        } else if (bonusTypeChance > 75 && bonusTypeChance < 100) {
+          bonusType = _bonus.BONUS_TYPE.SPEED;
+        }
+
+        var bonus = new _bonus2.default({
+          scene: this,
+          type: bonusType,
+          cell: cell
+        });
+        this.bonusGroup.add(bonus.image);
+
+        var _game$player = this.game.player,
+            explosionRadius = _game$player.explosionRadius,
+            maxExplosionRadius = _game$player.maxExplosionRadius,
+            speed = _game$player.speed,
+            maxSpeed = _game$player.maxSpeed;
+
+
+        if (bonus.type === _bonus.BONUS_TYPE.EXPLOSION_RADIUS && explosionRadius === maxExplosionRadius || bonus.type === _bonus.BONUS_TYPE.SPEED && speed >= maxSpeed) {
+          bonus.image.alpha = 0.5;
+        }
+      }
 
       var grassCell = new _bcell2.default({
         scene: this,
@@ -11101,94 +11163,134 @@ var Game = function (_Phaser$State) {
       });
       this.game.field.cells[row][column] = grassCell;
       this.game.field.add(grassCell);
+      this.grassGroup.add(grassCell);
+
       this.game.field.computeSuccessors();
+    }
+  }, {
+    key: 'destroyPlayer',
+    value: function destroyPlayer(playerSprite) {
+      var _this3 = this;
+
+      playerSprite.player.destroy(function () {
+        var textX = (_this3.game.camera.x + _this3.game.camera.width) * 0.5;
+        var textY = (_this3.game.camera.y + _this3.game.camera.height) * 0.5;
+        _this3.gameOverText.x = textX;
+        _this3.enemyKilledText.x = textX;
+        var gameOverTextTween = _this3.game.add.tween(_this3.gameOverText).from({ y: 0 }).to({ alpha: 1, y: textY }, 500, 'Linear', true);
+        gameOverTextTween.onComplete.add(function () {
+          _this3.game.add.tween(_this3.enemyKilledText).from({ y: window.innerHeight }).to({ alpha: 1, y: textY + 100 }, 500, 'Linear', true);
+        });
+      });
     }
   }, {
     key: 'createExplosion',
     value: function createExplosion(cell) {
-      var _this3 = this;
+      var _this4 = this;
 
-      var explosion = new _explosion2.default({ scene: this, cell: cell, radius: window.explosionRadius });
+      var explosion = new _explosion2.default({ scene: this, cell: cell, radius: this.game.player.explosionRadius });
       this.explosionGroup.add(explosion);
       setTimeout(function () {
-        var explosionTween = _this3.game.add.tween(explosion).to({ alpha: 0 }, 100, 'Linear', true);
+        var explosionTween = _this4.game.add.tween(explosion).to({ alpha: 0 }, 100, 'Linear', true);
         explosionTween.onComplete.add(function () {
           explosion.destroy();
         });
       }, 400);
     }
   }, {
+    key: 'takeBonus',
+    value: function takeBonus(bonus) {
+      if (bonus.cell.hasBonus) {
+        bonus.cell.hasBonus = false;
+        switch (bonus.type) {
+          case _bonus.BONUS_TYPE.EXPLOSION_RADIUS:
+            if (this.game.player.explosionRadius < this.game.player.maxExplosionRadius) {
+              this.game.player.explosionRadius++;
+              bonus.destroy();
+            }
+            break;
+          case _bonus.BONUS_TYPE.SPEED:
+            if (this.game.player.speed < this.game.player.maxSpeed) {
+              this.game.player.speed += 20;
+              bonus.destroy();
+            }
+            break;
+          default:
+            bonus.destroy();
+        }
+      }
+    }
+  }, {
     key: 'update',
     value: function update() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.game.physics.arcade.collide(this.stoneGroup, this.playerGroup);
-      this.game.physics.arcade.collide(this.playerGroup, this.enemyGroup);
+      this.game.physics.arcade.overlap(this.playerGroup, this.enemyGroup, function (playerSprite, enemySprite) {
+        _this5.destroyPlayer(playerSprite);
+      });
       this.game.physics.arcade.collide(this.playerGroup, this.bombGroup);
+      this.game.physics.arcade.collide(this.explosionGroup, this.playerGroup, function (sprite1, sprite2) {
+        _this5.destroyPlayer(sprite2);
+      });
       this.game.physics.arcade.collide(this.explosionGroup, this.enemyGroup, function (sprite1, sprite2) {
-        sprite2.enemy.destroy();
+        sprite2.enemy.destroy(function () {
+          _this5.enemyKilledText.text = 'Enemy killed: ' + ++_this5.enemykilled;
+        });
       });
       this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, function (sprite1, sprite2) {
         sprite2.bomb.explode();
       });
+      this.game.physics.arcade.overlap(this.playerGroup, this.bonusGroup, function (playerSprite, bonusSprite) {
+        _this5.takeBonus(bonusSprite.bonus);
+      });
+
       this.game.player.move();
 
-      // this.bombGroup.children.forEach(ch => {
-      //   this.game.debug.body(ch);
-      // });
-
-      // for (let i = 0; i < this.explosionGroup.children.length; i++) {
-      //   this.explosionGroup.children[i].forEach(ch => {
-      //     this.game.debug.body(ch);
-      //   });
-      // }
-
       var player = this.game.player;
-      var playerX = player.image.x;
-      var playerY = player.image.y;
-      this.game.enemies.data.forEach(function (enemy) {
-        var enemyX = enemy.image.x;
-        var enemyY = enemy.image.y;
-        var dx = playerX - enemyX;
-        var dy = playerY - enemyY;
-        var distance = Math.sqrt(dx * dx + dy * dy);
-        var angle = Math.atan2(-dy, dx);
+      if (!player.isDead) {
+        var playerX = player.image.x;
+        var playerY = player.image.y;
+        this.game.enemies.data.forEach(function (enemy) {
+          var enemyX = enemy.image.x;
+          var enemyY = enemy.image.y;
+          var dx = playerX - enemyX;
+          var dy = playerY - enemyY;
+          var distance = Math.sqrt(dx * dx + dy * dy);
+          var angle = Math.atan2(-dy, dx);
 
-        var computeAngle = function computeAngle(x, y) {
-          return _this4.normalizeAngle(Math.atan2(-y + enemyY, x - enemyX) - angle);
-        };
-        var computeDistance = function computeDistance(x, y) {
-          return Math.sqrt((x - enemyX) * (x - enemyX) + (y - enemyY) * (y - enemyY));
-        };
+          var computeAngle = function computeAngle(x, y) {
+            return _this5.normalizeAngle(Math.atan2(-y + enemyY, x - enemyX) - angle);
+          };
+          var computeDistance = function computeDistance(x, y) {
+            return Math.sqrt((x - enemyX) * (x - enemyX) + (y - enemyY) * (y - enemyY));
+          };
 
-        var blockingStone = _this4.stoneGroup.children.find(function (stone) {
-          var stoneDistance = computeDistance(stone.x, stone.y);
-          if (stoneDistance > distance) {
-            return false;
+          var blockingStone = _this5.stoneGroup.children.find(function (stone) {
+            var stoneDistance = computeDistance(stone.x, stone.y);
+            if (stoneDistance > distance) {
+              return false;
+            }
+
+            var stoneAngle = computeAngle(stone.x, stone.y);
+
+            if (Math.abs(stoneAngle) > Math.PI / 2) {
+              return false;
+            }
+
+            var sum = Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y - stone.height * 0.5)) + Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y + stone.height * 0.5)) + Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y + stone.height * 0.5)) + Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y - stone.height * 0.5));
+
+            return Math.abs(sum) !== 4;
+          });
+
+          if (!blockingStone) {
+            var playerRow = Math.floor(playerY / _this5.stoneGroup.children[0].height);
+            var playerColumn = Math.floor(playerX / _this5.stoneGroup.children[0].width);
+            var cell = _this5.game.field.cells[playerRow][playerColumn];
+            enemy.playerTarget = cell;
           }
-
-          var stoneAngle = computeAngle(stone.x, stone.y);
-
-          if (Math.abs(stoneAngle) > Math.PI / 2) {
-            return false;
-          }
-
-          var sum = Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y - stone.height * 0.5)) + Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y + stone.height * 0.5)) + Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y + stone.height * 0.5)) + Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y - stone.height * 0.5));
-
-          return Math.abs(sum) !== 4;
         });
-
-        if (blockingStone) {
-          // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, blockingStone.x, blockingStone.y));
-        } else {
-            // const playerRow = Math.floor(playerY / this.stoneGroup.children[0].height);
-            // const playerColumn = Math.floor(playerX / this.stoneGroup.children[0].width);
-            // const cell = this.game.field.cells[playerRow][playerColumn];
-            // console.log('cell', cell);
-            // enemy.playerTarget = cell;
-            // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, player.image.x, player.image.y));
-          }
-      });
+      }
     }
   }, {
     key: 'normalizeAngle',
@@ -11434,8 +11536,10 @@ var Field = function (_Phaser$Group) {
 
         visited[cell.row * _this4.rows + cell.column] = true;
 
-        for (var i = 0; i < cell.successors.length; i++) {
-          var subPath = search(cell.successors[i]);
+        var shuffledSuccessors = _this4.shuffleSuccessors(cell.successors);
+
+        for (var i = 0; i < shuffledSuccessors.length; i++) {
+          var subPath = search(shuffledSuccessors[i]);
           if (subPath) {
             return [cell].concat(subPath);
           }
@@ -11446,6 +11550,20 @@ var Field = function (_Phaser$Group) {
 
       var path = search(start);
       return path ? path.slice(1) : null;
+    }
+  }, {
+    key: 'shuffleSuccessors',
+    value: function shuffleSuccessors(successors) {
+      var successorsCopy = successors.slice();
+
+      for (var i = successorsCopy.length - 1; i > 0; i--) {
+        var randIndex = Math.floor(Math.random() * (i + 1));
+        var tmp = successorsCopy[randIndex];
+        successorsCopy[randIndex] = successorsCopy[i];
+        successorsCopy[i] = tmp;
+      }
+
+      return successorsCopy;
     }
   }, {
     key: 'aStar',
@@ -11559,6 +11677,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -11591,6 +11711,7 @@ var Player = function (_Phaser$Group) {
     _this.game.physics.enable(_this.image, Phaser.Physics.ARCADE);
     _this.addAnimations();
     _this.image.body.collideWorldBounds = true;
+    _this.image.player = _this;
 
     var radius = 14;
 
@@ -11619,6 +11740,12 @@ var Player = function (_Phaser$Group) {
         _this.image.animations.stop('walk-down');
       }
     });
+
+    _this.isDead = false;
+    _this.speed = 100;
+    _this.explosionRadius = 2;
+    _this.maxSpeed = 160;
+    _this.maxExplosionRadius = 8;
     return _this;
   }
 
@@ -11644,42 +11771,66 @@ var Player = function (_Phaser$Group) {
     value: function move() {
       var _this2 = this;
 
-      var horizontalSpeed = 0;
-      var verticalSpeed = 0;
-      var animation = null;
-      if (this.cursors.left.isDown) {
-        horizontalSpeed -= 100;
-        animation = 'walk-left';
-      }
-
-      if (this.cursors.right.isDown) {
-        horizontalSpeed += 100;
-        animation = 'walk-right';
-      }
-
-      if (this.cursors.up.isDown) {
-        verticalSpeed -= 100;
-        animation = 'walk-up';
-      }
-
-      if (this.cursors.down.isDown) {
-        verticalSpeed += 100;
-        animation = 'walk-down';
-      }
-
-      if (horizontalSpeed && verticalSpeed) {
-        horizontalSpeed /= Math.sqrt(2);
-        verticalSpeed /= Math.sqrt(2);
-      }
-
-      this.image.body.velocity.x = horizontalSpeed * window.devicePixelRatio;
-      this.image.body.velocity.y = verticalSpeed * window.devicePixelRatio;
-      this.image.animations.play(animation, 30, true);
-
-      this.animationsName.forEach(function (name) {
-        if (name !== animation) {
-          _this2.image.animations.stop(name);
+      if (this.isDead === false) {
+        var horizontalSpeed = 0;
+        var verticalSpeed = 0;
+        var animation = null;
+        if (this.cursors.left.isDown) {
+          horizontalSpeed -= this.speed;
+          animation = 'walk-left';
         }
+
+        if (this.cursors.right.isDown) {
+          horizontalSpeed += this.speed;
+          animation = 'walk-right';
+        }
+
+        if (this.cursors.up.isDown) {
+          verticalSpeed -= this.speed;
+          animation = 'walk-up';
+        }
+
+        if (this.cursors.down.isDown) {
+          verticalSpeed += this.speed;
+          animation = 'walk-down';
+        }
+
+        if (horizontalSpeed && verticalSpeed) {
+          horizontalSpeed /= Math.sqrt(2);
+          verticalSpeed /= Math.sqrt(2);
+        }
+
+        this.image.body.velocity.x = horizontalSpeed * window.devicePixelRatio;
+        this.image.body.velocity.y = verticalSpeed * window.devicePixelRatio;
+        this.image.animations.play(animation, 30, true);
+
+        this.animationsName.forEach(function (name) {
+          if (name !== animation) {
+            _this2.image.animations.stop(name);
+          }
+        });
+      }
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy(cb) {
+      var _this3 = this;
+
+      if (this.isDead) {
+        return;
+      }
+      this.isDead = true;
+      this.image.body.velocity.x = 0;
+      this.image.body.velocity.y = 0;
+      if (this.tween) {
+        this.tween.stop();
+      }
+      cb && cb();
+      this.image.animations.stop();
+      this.tween = this.game.add.tween(this.image).to({ alpha: 0 }, 400, 'Linear', true);
+      this.tween.onComplete.add(function () {
+        _this3.image.destroy();
+        _get(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'destroy', _this3).call(_this3);
       });
     }
   }, {
@@ -11787,13 +11938,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var DIRECTIONS = {
-  UP: 1,
-  DOWN: -1,
-  LEFT: 2,
-  RIGHT: -2
-};
-
 var Enemy = function (_Phaser$Group) {
   _inherits(Enemy, _Phaser$Group);
 
@@ -11810,12 +11954,11 @@ var Enemy = function (_Phaser$Group) {
 
     _this.game.add.existing(_this);
 
-    _this.image = _this.game.add.sprite(cell.image.x, cell.image.y, 'spritesheet', 'nyan-right1.png');
-    _this.image.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
+    _this.image = _this.game.add.sprite(cell.image.x, cell.image.y, 'spritesheet', 'pacman-right1.png');
+    _this.image.scale.setTo(window.devicePixelRatio * 0.5, window.devicePixelRatio * 0.5);
     _this.add(_this.image);
     _this.game.physics.enable(_this.image, Phaser.Physics.ARCADE);
     _this.addAnimations();
-    _this.image.body.collideWorldBounds = true;
     _this.image.body.fixedRotation = true;
     _this.image.enemy = _this;
     _this.image.body.onWorldBounds = new Phaser.Signal();
@@ -11835,17 +11978,17 @@ var Enemy = function (_Phaser$Group) {
   _createClass(Enemy, [{
     key: 'addAnimations',
     value: function addAnimations() {
-      this.image.animations.add('nyan-right', [1, 2, 3, 4].map(function (i) {
-        return 'nyan-right' + i + '.png';
+      this.image.animations.add('pacman-right', [1, 2, 3, 4].map(function (i) {
+        return 'pacman-right' + i + '.png';
       }));
-      this.image.animations.add('nyan-left', [1, 2, 3, 4].map(function (i) {
-        return 'nyan-left' + i + '.png';
+      this.image.animations.add('pacman-left', [1, 2, 3, 4].map(function (i) {
+        return 'pacman-left' + i + '.png';
       }));
-      this.image.animations.add('nyan-up', [1, 2, 3, 4].map(function (i) {
-        return 'nyan-up' + i + '.png';
+      this.image.animations.add('pacman-up', [1, 2, 3, 4].map(function (i) {
+        return 'pacman-up' + i + '.png';
       }));
-      this.image.animations.add('nyan-down', [1, 2, 3, 4].map(function (i) {
-        return 'nyan-down' + i + '.png';
+      this.image.animations.add('pacman-down', [1, 2, 3, 4].map(function (i) {
+        return 'pacman-down' + i + '.png';
       }));
     }
   }, {
@@ -11862,13 +12005,13 @@ var Enemy = function (_Phaser$Group) {
       var speed = null;
       if (this.playerTarget && !this.isSameCoordinate(origin.image, this.playerTarget.image)) {
         this.target = this.playerTarget;
-        speed = 500;
+        speed = 400;
         path = this.game.field.aStar(origin, this.target);
       }
 
       if (path === null) {
         this.playerTarget = null;
-        speed = 1000;
+        speed = 900;
         var reachableCells = this.game.field.getReachableCells(origin);
         this.target = reachableCells[Math.floor(Math.random() * reachableCells.length)];
         path = this.game.field.dfs(origin, this.target);
@@ -11885,13 +12028,13 @@ var Enemy = function (_Phaser$Group) {
         var nextTarget = path[i++];
         var prevTarget = i > 1 ? path[i - 2] : origin;
         if (nextTarget.row - prevTarget.row === 1) {
-          _this2.image.animations.play('nyan-down', 30, true);
+          _this2.image.animations.play('pacman-down', 30, true);
         } else if (nextTarget.row - prevTarget.row === -1) {
-          _this2.image.animations.play('nyan-up', 30, true);
+          _this2.image.animations.play('pacman-up', 30, true);
         } else if (nextTarget.column - prevTarget.column === 1) {
-          _this2.image.animations.play('nyan-right', 30, true);
+          _this2.image.animations.play('pacman-right', 30, true);
         } else if (nextTarget.column - prevTarget.column === -1) {
-          _this2.image.animations.play('nyan-left', 30, true);
+          _this2.image.animations.play('pacman-left', 30, true);
         }
 
         _this2.tween = _this2.game.add.tween(_this2.image).to({ x: nextTarget.image.x, y: nextTarget.image.y }, speed);
@@ -11904,18 +12047,19 @@ var Enemy = function (_Phaser$Group) {
     }
   }, {
     key: 'destroy',
-    value: function destroy() {
+    value: function destroy(cb) {
       var _this3 = this;
 
-      console.log('destroy here');
       if (this.tween) {
         this.tween.stop();
       }
       this.image.animations.stop();
+      this.image.body.immovable = true;
       this.tween = this.game.add.tween(this.image).to({ alpha: 0 }, 400, 'Linear', true);
       this.tween.onComplete.add(function () {
         _this3.image.destroy();
         _get(Enemy.prototype.__proto__ || Object.getPrototypeOf(Enemy.prototype), 'destroy', _this3).call(_this3);
+        cb && cb();
       });
       this.tween.start();
     }
@@ -11989,7 +12133,7 @@ var Bomb = function (_Phaser$Group) {
     _this.game.physics.enable(_this.image, _phaser2.default.Physics.ARCADE);
     _this.image.body.immovable = true;
     _this.image.body.setSize(0.6 * _this.image.width, 0.6 * _this.image.height, 0.2 * _this.image.width, 0.2 * _this.image.height);
-    _this.image.scale.setTo(0.5 * window.devicePixelRatio);
+    _this.image.scale.setTo(0.6 * window.devicePixelRatio);
     _this.image.bomb = _this;
     _this.add(_this.image);
     _this.game.add.existing(_this);
@@ -12001,6 +12145,7 @@ var Bomb = function (_Phaser$Group) {
       _this.explode();
     }, window.bombTimer);
     _this.game.field.computeSuccessors();
+    _this.startScale();
     return _this;
   }
 
@@ -12013,6 +12158,23 @@ var Bomb = function (_Phaser$Group) {
       this.game.field.computeSuccessors();
       this.image.destroy();
       this.destroy();
+    }
+  }, {
+    key: 'startScale',
+    value: function startScale() {
+      var _this2 = this;
+
+      if (this.cell.hasBomb) {
+        var downScaleTween = this.game.add.tween(this.image.scale).to({ x: 0.4 * window.devicePixelRatio, y: 0.4 * window.devicePixelRatio }, 400, 'Linear', true);
+        downScaleTween.onComplete.add(function () {
+          if (_this2.cell.hasBomb) {
+            var upScaleTween = _this2.game.add.tween(_this2.image.scale).to({ x: 0.6 * window.devicePixelRatio, y: 0.6 * window.devicePixelRatio }, 400, 'Linear', true);
+            upScaleTween.onComplete.add(function () {
+              _this2.startScale();
+            });
+          }
+        });
+      }
     }
   }]);
 
@@ -12172,6 +12334,127 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var BOMB_TIMER = exports.BOMB_TIMER = 3000;
+
+/***/ }),
+/* 344 */,
+/* 345 */,
+/* 346 */,
+/* 347 */,
+/* 348 */,
+/* 349 */,
+/* 350 */,
+/* 351 */
+/*!***********************************!*\
+  !*** ./src/game-objects/bonus.js ***!
+  \***********************************/
+/*! no static exports found */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.BONUS_TYPE = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _phaser = __webpack_require__(/*! phaser */ 31);
+
+var _phaser2 = _interopRequireDefault(_phaser);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var BONUS_TYPE = exports.BONUS_TYPE = {
+  SPEED: 1,
+  EXPLOSION_RADIUS: 2,
+  SCORE: 3
+};
+
+var Bonus = function (_Phaser$Group) {
+  _inherits(Bonus, _Phaser$Group);
+
+  function Bonus(_ref) {
+    var scene = _ref.scene,
+        cell = _ref.cell,
+        type = _ref.type;
+
+    _classCallCheck(this, Bonus);
+
+    var game = scene.game;
+
+    var _this = _possibleConstructorReturn(this, (Bonus.__proto__ || Object.getPrototypeOf(Bonus)).call(this, game));
+
+    var image = cell.image,
+        row = cell.row,
+        column = cell.column;
+
+    Object.assign(_this, {
+      game: game,
+      scene: scene,
+      row: row,
+      column: column,
+      cell: cell,
+      type: type
+    });
+
+    var bonusImg = 'bonus-score1.png';
+
+    switch (_this.type) {
+      case BONUS_TYPE.SPEED:
+        bonusImg = 'bonus-speed.png';break;
+      case BONUS_TYPE.RADIUS:
+        bonusImg = 'bonus-radius.png';break;
+      case BONUS_TYPE.SCORE:
+        bonusImg = 'bonus-score3.png';break;
+    }
+
+    _this.image = _this.game.add.sprite(image.x, image.y, 'spritesheet', bonusImg);
+    _this.image.anchor.setTo(0.5);
+    _this.game.physics.enable(_this.image, _phaser2.default.Physics.ARCADE);
+    _this.image.body.immovable = true;
+    _this.image.scale.setTo(window.devicePixelRatio);
+    _this.image.bonus = _this;
+    _this.add(_this.image);
+    _this.game.add.existing(_this);
+
+    _this.cell.hasBonus = true;
+    return _this;
+  }
+
+  _createClass(Bonus, [{
+    key: 'destroy',
+    value: function destroy(cb) {
+      var _this2 = this;
+
+      if (this.tween) {
+        this.tween.stop();
+      }
+      this.image.body.immovable = true;
+      this.tween = this.game.add.tween(this.image).to({ alpha: 0 }, 400, 'Linear', true);
+      this.tween.onComplete.add(function () {
+        _this2.image.destroy();
+        _get(Bonus.prototype.__proto__ || Object.getPrototypeOf(Bonus.prototype), 'destroy', _this2).call(_this2);
+        cb && cb();
+      });
+      this.tween.start();
+    }
+  }]);
+
+  return Bonus;
+}(_phaser2.default.Group);
+
+exports.default = Bonus;
 
 /***/ })
 ],[127]);

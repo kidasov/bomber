@@ -165,8 +165,10 @@ export default class Field extends Phaser.Group {
 
       visited[cell.row * this.rows + cell.column] = true;
 
-      for (let i = 0; i < cell.successors.length; i++) {
-        const subPath = search(cell.successors[i]);
+      const shuffledSuccessors = this.shuffleSuccessors(cell.successors);
+
+      for (let i = 0; i < shuffledSuccessors.length; i++) {
+        const subPath = search(shuffledSuccessors[i]);
         if (subPath) {
           return [cell].concat(subPath);
         }
@@ -177,6 +179,19 @@ export default class Field extends Phaser.Group {
 
     const path = search(start);
     return path ? path.slice(1) : null;
+  }
+
+  shuffleSuccessors(successors) {
+    const successorsCopy = successors.slice();
+
+    for (let i = successorsCopy.length - 1; i > 0; i--) {
+      const randIndex = Math.floor(Math.random() * (i + 1));
+      let tmp = successorsCopy[randIndex];
+      successorsCopy[randIndex] = successorsCopy[i];
+      successorsCopy[i] = tmp;
+    }
+
+    return successorsCopy;
   }
 
   aStar(start, finish) {

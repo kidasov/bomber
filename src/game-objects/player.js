@@ -14,6 +14,7 @@ export default class Player extends Phaser.Group {
     this.game.physics.enable(this.image, Phaser.Physics.ARCADE);
     this.addAnimations();
     this.image.body.collideWorldBounds = true;
+    this.image.player = this;
 
     const radius = 14;
 
@@ -42,6 +43,12 @@ export default class Player extends Phaser.Group {
         this.image.animations.stop('walk-down');
       }
     });
+
+    this.isDead = false;
+    this.speed = 100;
+    this.explosionRadius = 2;
+    this.maxSpeed = 160;
+    this.maxExplosionRadius = 8;
   }
 
   get currentCell() {
@@ -60,42 +67,63 @@ export default class Player extends Phaser.Group {
   }
 
   move() {
-    let horizontalSpeed = 0;
-    let verticalSpeed = 0;
-    let animation = null;
-    if (this.cursors.left.isDown) {
-      horizontalSpeed -= 100;
-      animation = 'walk-left';
-    }
-
-    if (this.cursors.right.isDown) {
-      horizontalSpeed += 100;
-      animation = 'walk-right';
-    }
-
-    if (this.cursors.up.isDown) {
-      verticalSpeed -= 100;
-      animation = 'walk-up';
-    }
-
-    if (this.cursors.down.isDown) {
-      verticalSpeed += 100;
-      animation = 'walk-down';
-    }
-
-    if (horizontalSpeed && verticalSpeed) {
-      horizontalSpeed /= Math.sqrt(2);
-      verticalSpeed /= Math.sqrt(2);
-    }
-
-    this.image.body.velocity.x = horizontalSpeed * window.devicePixelRatio;
-    this.image.body.velocity.y = verticalSpeed * window.devicePixelRatio;
-    this.image.animations.play(animation, 30, true);
-
-    this.animationsName.forEach(name => {
-      if (name !== animation) {
-        this.image.animations.stop(name);
+    if (this.isDead === false) {
+      let horizontalSpeed = 0;
+      let verticalSpeed = 0;
+      let animation = null;
+      if (this.cursors.left.isDown) {
+        horizontalSpeed -= this.speed;
+        animation = 'walk-left';
       }
+
+      if (this.cursors.right.isDown) {
+        horizontalSpeed += this.speed;
+        animation = 'walk-right';
+      }
+
+      if (this.cursors.up.isDown) {
+        verticalSpeed -= this.speed;
+        animation = 'walk-up';
+      }
+
+      if (this.cursors.down.isDown) {
+        verticalSpeed += this.speed;
+        animation = 'walk-down';
+      }
+
+      if (horizontalSpeed && verticalSpeed) {
+        horizontalSpeed /= Math.sqrt(2);
+        verticalSpeed /= Math.sqrt(2);
+      }
+
+      this.image.body.velocity.x = horizontalSpeed * window.devicePixelRatio;
+      this.image.body.velocity.y = verticalSpeed * window.devicePixelRatio;
+      this.image.animations.play(animation, 30, true);
+
+      this.animationsName.forEach(name => {
+        if (name !== animation) {
+          this.image.animations.stop(name);
+        }
+      });
+    }
+  }
+
+  destroy(cb) {
+    if (this.isDead) {
+      return;
+    }
+    this.isDead = true;
+    this.image.body.velocity.x = 0;
+    this.image.body.velocity.y = 0;
+    if (this.tween) {
+      this.tween.stop();
+    }
+    cb && cb();
+    this.image.animations.stop();
+    this.tween = this.game.add.tween(this.image).to({ alpha: 0 }, 400, 'Linear', true);
+    this.tween.onComplete.add(() => {
+      this.image.destroy();
+      super.destroy();
     });
   }
 }

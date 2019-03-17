@@ -6,6 +6,7 @@ import Bomb from '../game-objects/bomb';
 import Explosion from '../game-objects/explosion';
 import BCell, { BCELL_TYPE } from '../game-objects/bcell';
 import { BOMB_TIMER } from '../consts/gameplay';
+import Bonus, { BONUS_TYPE } from '../game-objects/bonus';
 
 class Game extends Phaser.State {
   init() {}
@@ -19,16 +20,27 @@ class Game extends Phaser.State {
 
     window.game = this;
 
+    this.grassGroup = this.game.add.group();
     this.stoneGroup = this.game.add.group();
     this.enemyGroup = this.game.add.group();
     this.playerGroup = this.game.add.group();
     this.bombGroup = this.game.add.group();
+    this.bonusGroup = this.game.add.group();
     this.explosionGroup = this.game.add.group();
+    this.game.forceSingleUpdate = false;
+    this.allGroup = this.game.add.group();
+    this.allGroup.add(this.grassGroup);
+    this.allGroup.add(this.playerGroup);
+    this.allGroup.add(this.enemyGroup);
+    this.allGroup.add(this.stoneGroup);
+    this.allGroup.add(this.bombGroup);
+    this.allGroup.add(this.bonusGroup);
+    this.allGroup.add(this.explosionGroup);
 
     this.game.field = new Field({
       scene: this,
-      rows: 32,
-      columns: 32,
+      rows: 40,
+      columns: 40,
       collisionGroup: this.stoneGroup
     });
     this.game.world.setBounds(0, 0, this.game.field.width, this.game.field.height);
@@ -47,6 +59,8 @@ class Game extends Phaser.State {
       for (let j = 0; j < this.game.field.cells[i].length; j++) {
         if (this.game.field.cells[i][j].image.body) {
           this.stoneGroup.add(this.game.field.cells[i][j].image);
+        } else {
+          this.grassGroup.add(this.game.field.cells[i][j].image);
         }
       }
     }
@@ -66,13 +80,20 @@ class Game extends Phaser.State {
     window.explosionRadius = 2;
     window.bombTimer = BOMB_TIMER;
 
-    window.addEnemies(3);
+    window.addEnemies(10);
 
-    this.game.world.bringToTop(this.playerGroup);
-    this.game.world.bringToTop(this.enemyGroup);
-    this.game.world.bringToTop(this.stoneGroup);
-    this.game.world.bringToTop(this.bombGroup);
-    this.game.world.bringToTop(this.explosionGroup);
+    this.enemykilled = 0;
+
+    const textX = (this.game.camera.x + this.game.camera.width) * 0.5;
+    const textY = (this.game.camera.y + this.game.camera.height) * 0.5;
+
+    this.gameOverText = this.game.add.bitmapText(textX, textY, 'desyrel', 'Game Over', 64);
+    this.gameOverText.anchor.setTo(0.5);
+    this.gameOverText.alpha = 0;
+
+    this.enemyKilledText = this.game.add.bitmapText(textX, textY + 100, 'desyrel', `Enemy killed: ${this.enemykilled}`, 64);
+    this.enemyKilledText.anchor.setTo(0.5);
+    this.enemyKilledText.alpha = 0;
   }
 
   dropBomb(cell) {
@@ -83,8 +104,35 @@ class Game extends Phaser.State {
   destroyStone(cell) {
     cell.image.destroy();
     cell.destroy();
-
     const { row, column, image } = cell;
+
+    const chance = Math.round(Math.random() * 100);
+
+    if (chance <= 25) {
+      let bonusType = BONUS_TYPE.SCORE;
+
+      const bonusTypeChance = Math.round(Math.random() * 100);
+
+      if (bonusTypeChance > 50 && bonusTypeChance < 75) {
+        bonusType = BONUS_TYPE.EXPLOSION_RADIUS;
+      } else if (bonusTypeChance > 75 && bonusTypeChance < 100) {
+        bonusType = BONUS_TYPE.SPEED;
+      }
+
+      const bonus = new Bonus({
+        scene: this,
+        type: bonusType,
+        cell
+      });
+      this.bonusGroup.add(bonus.image);
+
+      const { player: { explosionRadius, maxExplosionRadius, speed, maxSpeed } } = this.game;
+
+      if ((bonus.type === BONUS_TYPE.EXPLOSION_RADIUS && explosionRadius === maxExplosionRadius) || (bonus.type === BONUS_TYPE.SPEED && speed >= maxSpeed)) {
+        bonus.image.alpha = 0.5;
+      }
+    }
+
     const grassCell = new BCell({
       scene: this,
       x: image.x - image.width * 0.5,
@@ -95,11 +143,26 @@ class Game extends Phaser.State {
     });
     this.game.field.cells[row][column] = grassCell;
     this.game.field.add(grassCell);
+    this.grassGroup.add(grassCell);
+
     this.game.field.computeSuccessors();
   }
 
+  destroyPlayer(playerSprite) {
+    playerSprite.player.destroy(() => {
+      const textX = (this.game.camera.x + this.game.camera.width) * 0.5;
+      const textY = (this.game.camera.y + this.game.camera.height) * 0.5;
+      this.gameOverText.x = textX;
+      this.enemyKilledText.x = textX;
+      const gameOverTextTween = this.game.add.tween(this.gameOverText).from({ y: 0 }).to({alpha: 1, y: textY}, 500, 'Linear', true);
+      gameOverTextTween.onComplete.add(() => {
+        this.game.add.tween(this.enemyKilledText).from({ y: window.innerHeight }).to({alpha: 1, y: textY + 100}, 500, 'Linear', true);
+      });
+    });
+  }
+
   createExplosion(cell) {
-    const explosion = new Explosion({ scene: this, cell, radius: window.explosionRadius });
+    const explosion = new Explosion({ scene: this, cell, radius: this.game.player.explosionRadius });
     this.explosionGroup.add(explosion);
     setTimeout(() => {
       const explosionTween = this.game.add.tween(explosion).to({ alpha: 0 }, 100, 'Linear', true);
@@ -107,74 +170,94 @@ class Game extends Phaser.State {
     }, 400);
   }
 
+  takeBonus(bonus) {
+    if (bonus.cell.hasBonus) {
+      bonus.cell.hasBonus = false;
+      switch (bonus.type) {
+      case BONUS_TYPE.EXPLOSION_RADIUS:
+        if (this.game.player.explosionRadius < this.game.player.maxExplosionRadius) {
+          this.game.player.explosionRadius++;
+          bonus.destroy();
+        }
+        break;
+      case BONUS_TYPE.SPEED:
+        if (this.game.player.speed < this.game.player.maxSpeed) {
+          this.game.player.speed += 20;
+          bonus.destroy();
+        }
+        break;
+      default: bonus.destroy();
+      }
+    }
+  }
+
   update() {
     this.game.physics.arcade.collide(this.stoneGroup, this.playerGroup);
-    this.game.physics.arcade.collide(this.playerGroup, this.enemyGroup);
+    this.game.physics.arcade.overlap(this.playerGroup, this.enemyGroup, (playerSprite, enemySprite) => {
+      this.destroyPlayer(playerSprite);
+    });
     this.game.physics.arcade.collide(this.playerGroup, this.bombGroup);
+    this.game.physics.arcade.collide(this.explosionGroup, this.playerGroup, (sprite1, sprite2) => {
+      this.destroyPlayer(sprite2);
+    });
     this.game.physics.arcade.collide(this.explosionGroup, this.enemyGroup, (sprite1, sprite2) => {
-      sprite2.enemy.destroy();
+      sprite2.enemy.destroy(() => {
+        this.enemyKilledText.text = `Enemy killed: ${++this.enemykilled}`;
+      });
     });
     this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, (sprite1, sprite2) => {
       sprite2.bomb.explode();
     });
+    this.game.physics.arcade.overlap(this.playerGroup, this.bonusGroup, (playerSprite, bonusSprite) => {
+      this.takeBonus(bonusSprite.bonus);
+    });
+
     this.game.player.move();
 
-    // this.bombGroup.children.forEach(ch => {
-    //   this.game.debug.body(ch);
-    // });
-
-    // for (let i = 0; i < this.explosionGroup.children.length; i++) {
-    //   this.explosionGroup.children[i].forEach(ch => {
-    //     this.game.debug.body(ch);
-    //   });
-    // }
-
     const player = this.game.player;
-    const playerX = player.image.x;
-    const playerY = player.image.y;
-    this.game.enemies.data.forEach(enemy => {
-      const enemyX = enemy.image.x;
-      const enemyY = enemy.image.y;
-      const dx = playerX - enemyX;
-      const dy = playerY - enemyY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(-dy, dx);
+    if (!player.isDead) {
+      const playerX = player.image.x;
+      const playerY = player.image.y;
+      this.game.enemies.data.forEach(enemy => {
+        const enemyX = enemy.image.x;
+        const enemyY = enemy.image.y;
+        const dx = playerX - enemyX;
+        const dy = playerY - enemyY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(-dy, dx);
 
-      const computeAngle = (x, y) => this.normalizeAngle(Math.atan2(-y + enemyY, x - enemyX) - angle);
-      const computeDistance = (x, y) => Math.sqrt((x - enemyX) * (x - enemyX) + (y - enemyY) * (y - enemyY));
+        const computeAngle = (x, y) => this.normalizeAngle(Math.atan2(-y + enemyY, x - enemyX) - angle);
+        const computeDistance = (x, y) => Math.sqrt((x - enemyX) * (x - enemyX) + (y - enemyY) * (y - enemyY));
 
-      const blockingStone = this.stoneGroup.children.find(stone => {
-        const stoneDistance = computeDistance(stone.x, stone.y);
-        if (stoneDistance > distance) {
-          return false;
+        const blockingStone = this.stoneGroup.children.find(stone => {
+          const stoneDistance = computeDistance(stone.x, stone.y);
+          if (stoneDistance > distance) {
+            return false;
+          }
+
+          const stoneAngle = computeAngle(stone.x, stone.y);
+
+          if (Math.abs(stoneAngle) > Math.PI / 2) {
+            return false;
+          }
+
+          const sum =
+            Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y - stone.height * 0.5)) +
+            Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y + stone.height * 0.5)) +
+            Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y + stone.height * 0.5)) +
+            Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y - stone.height * 0.5));
+
+          return Math.abs(sum) !== 4;
+        });
+
+        if (!blockingStone) {
+          const playerRow = Math.floor(playerY / this.stoneGroup.children[0].height);
+          const playerColumn = Math.floor(playerX / this.stoneGroup.children[0].width);
+          const cell = this.game.field.cells[playerRow][playerColumn];
+          enemy.playerTarget = cell;
         }
-
-        const stoneAngle = computeAngle(stone.x, stone.y);
-
-        if (Math.abs(stoneAngle) > Math.PI / 2) {
-          return false;
-        }
-
-        const sum =
-          Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y - stone.height * 0.5)) +
-          Math.sign(computeAngle(stone.x - stone.width * 0.5, stone.y + stone.height * 0.5)) +
-          Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y + stone.height * 0.5)) +
-          Math.sign(computeAngle(stone.x + stone.width * 0.5, stone.y - stone.height * 0.5));
-
-        return Math.abs(sum) !== 4;
       });
-
-      if (blockingStone) {
-        // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, blockingStone.x, blockingStone.y));
-      } else {
-        // const playerRow = Math.floor(playerY / this.stoneGroup.children[0].height);
-        // const playerColumn = Math.floor(playerX / this.stoneGroup.children[0].width);
-        // const cell = this.game.field.cells[playerRow][playerColumn];
-        // console.log('cell', cell);
-        // enemy.playerTarget = cell;
-        // this.game.debug.geom(new Phaser.Line(enemy.image.x, enemy.image.y, player.image.x, player.image.y));
-      }
-    });
+    }
   }
 
   normalizeAngle(angle) {
