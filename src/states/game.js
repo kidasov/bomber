@@ -32,10 +32,10 @@ class Game extends Phaser.State {
     this.allGroup.add(this.grassGroup);
     this.allGroup.add(this.playerGroup);
     this.allGroup.add(this.enemyGroup);
-    this.allGroup.add(this.stoneGroup);
     this.allGroup.add(this.bombGroup);
     this.allGroup.add(this.bonusGroup);
     this.allGroup.add(this.explosionGroup);
+    this.allGroup.add(this.stoneGroup);
 
     this.game.field = new Field({
       scene: this,
@@ -102,8 +102,6 @@ class Game extends Phaser.State {
   }
 
   destroyStone(cell) {
-    cell.image.destroy();
-    cell.destroy();
     const { row, column, image } = cell;
 
     const chance = Math.round(Math.random() * 100);
@@ -141,11 +139,16 @@ class Game extends Phaser.State {
       row,
       column
     });
-    this.game.field.cells[row][column] = grassCell;
     this.game.field.add(grassCell);
     this.grassGroup.add(grassCell);
 
-    this.game.field.computeSuccessors();
+    const destroyStoneTween = this.game.add.tween(cell.image).to({ alpha: 0 }, 500, 'Linear', true);
+    destroyStoneTween.onComplete.add(() => {
+      cell.image.destroy();
+      cell.destroy();
+      this.game.field.cells[row][column] = grassCell;
+      this.game.field.computeSuccessors();
+    });
   }
 
   destroyPlayer(playerSprite) {

@@ -33,6 +33,7 @@ export default class Bonus extends Phaser.Group {
     this.game.physics.enable(this.image, Phaser.Physics.ARCADE);
     this.image.body.immovable = true;
     this.image.scale.setTo(window.devicePixelRatio);
+    this.image.body.setSize(0.5 * this.image.width, 0.5 * this.image.height, 0.25 * this.image.width, 0.25 * this.image.height);
     this.image.bonus = this;
     this.add(this.image);
     this.game.add.existing(this);

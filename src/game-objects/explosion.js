@@ -31,7 +31,7 @@ export default class Explosion extends Phaser.Group {
         leftMiddle.angle = 180;
         this.game.physics.enable(leftMiddle, Phaser.Physics.ARCADE);
         leftMiddle.body.immovable = true;
-        leftMiddle.body.setSize(leftMiddle.width, 0.6 * leftMiddle.height, 0, 0.2 * leftMiddle.height);
+        leftMiddle.body.setSize(0.6 * leftMiddle.width, 0.6 * leftMiddle.height, 0.2 * leftMiddle.width, 0.2 * leftMiddle.height);
         leftMiddle.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
         this.add(leftMiddle);
 
@@ -47,7 +47,7 @@ export default class Explosion extends Phaser.Group {
         rightMiddle.anchor.setTo(0.5);
         this.game.physics.enable(rightMiddle, Phaser.Physics.ARCADE);
         rightMiddle.body.immovable = true;
-        rightMiddle.body.setSize(rightMiddle.width, 0.6 * rightMiddle.height, 0, 0.2 * rightMiddle.height);
+        rightMiddle.body.setSize(0.6 * rightMiddle.width, 0.6 * rightMiddle.height, 0.2 * rightMiddle.width, 0.2 * rightMiddle.height);
         rightMiddle.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
         this.add(rightMiddle);
 
@@ -64,7 +64,7 @@ export default class Explosion extends Phaser.Group {
         topMiddle.angle = -90;
         this.game.physics.enable(topMiddle, Phaser.Physics.ARCADE);
         topMiddle.body.immovable = true;
-        topMiddle.body.setSize(0.6 * topMiddle.width, topMiddle.height, 0.2 * topMiddle.width, 0);
+        topMiddle.body.setSize(0.6 * topMiddle.width, 0.6 * topMiddle.height, 0.2 * topMiddle.width, 0.2 * topMiddle.height);
         topMiddle.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
         this.add(topMiddle);
 
@@ -81,7 +81,7 @@ export default class Explosion extends Phaser.Group {
         bottomMiddle.angle = 90;
         this.game.physics.enable(bottomMiddle, Phaser.Physics.ARCADE);
         bottomMiddle.body.immovable = true;
-        bottomMiddle.body.setSize(0.6 * bottomMiddle.width, bottomMiddle.height, 0.2 * bottomMiddle.width, 0);
+        bottomMiddle.body.setSize(0.6 * bottomMiddle.width, 0.6 * bottomMiddle.height, 0.2 * bottomMiddle.width, 0.2 * bottomMiddle.height);
         bottomMiddle.scale.setTo(window.devicePixelRatio, window.devicePixelRatio);
         this.add(bottomMiddle);
 
