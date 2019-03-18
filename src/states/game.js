@@ -229,9 +229,12 @@ class Game extends Phaser.State {
       });
     });
     this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, (explosionSprite, bombSprite) => {
-      setTimeout(() => {
-        bombSprite.bomb.explode();
-      }, 20);
+      if (!bombSprite.bomb.triggered) {
+        bombSprite.bomb.triggered = true;
+        setTimeout(() => {
+          bombSprite.bomb.explode();
+        }, 20);
+      }
     });
     this.game.physics.arcade.overlap(this.playerGroup, this.bonusGroup, (playerSprite, bonusSprite) => {
       this.takeBonus(bonusSprite.bonus);

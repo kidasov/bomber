@@ -33,14 +33,10 @@ export default class Bomb extends Phaser.Group {
     this.game.field.computeSuccessors();
     this.startScale();
 
-    this.isTriggered = false;
+    this.triggered = false;
   }
 
   explode() {
-    if (this.isTriggered) {
-      return;
-    }
-    this.isTriggered = true;
     clearTimeout(this.bombTimer);
     this.scene.createExplosion(this.cell);
     this.cell.hasBomb = false;
