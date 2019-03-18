@@ -1,1 +1,1 @@
-export const BOMB_TIMER = 3000;
+export const BOMB_TIMER = 5000;

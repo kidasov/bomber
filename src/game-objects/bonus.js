@@ -3,7 +3,9 @@ import Phaser from 'phaser';
 export const BONUS_TYPE = {
   SPEED: 1,
   EXPLOSION_RADIUS: 2,
-  SCORE: 3
+  SCORE_BRONZE: 3,
+  SCORE_SILVER: 4,
+  SCORE_GOLD: 5
 };
 
 export default class Bonus extends Phaser.Group {
@@ -25,7 +27,9 @@ export default class Bonus extends Phaser.Group {
     switch (this.type) {
     case BONUS_TYPE.SPEED: bonusImg = 'bonus-speed.png'; break;
     case BONUS_TYPE.EXPLOSION_RADIUS: bonusImg = 'bonus-radius.png'; break;
-    case BONUS_TYPE.SCORE: bonusImg = 'bonus-score3.png'; break;
+    case BONUS_TYPE.SCORE_BRONZE: bonusImg = 'bonus-score2.png'; break;
+    case BONUS_TYPE.SCORE_SILVER: bonusImg = 'bonus-score3.png'; break;
+    case BONUS_TYPE.SCORE_GOLD: bonusImg = 'bonus-score1.png'; break;
     }
 
     this.image = this.game.add.sprite(image.x, image.y, 'spritesheet', bonusImg);

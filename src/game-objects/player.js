@@ -99,7 +99,7 @@ export default class Player extends Phaser.Group {
 
       this.image.body.velocity.x = horizontalSpeed * window.devicePixelRatio;
       this.image.body.velocity.y = verticalSpeed * window.devicePixelRatio;
-      this.image.animations.play(animation, 30, true);
+      this.image.animations.play(animation, 10, true);
 
       this.animationsName.forEach(name => {
         if (name !== animation) {

@@ -23,7 +23,7 @@ export default class Bomb extends Phaser.Group {
     this.image.bomb = this;
     this.add(this.image);
     this.game.add.existing(this);
-    this.image.animations.play('bomb', 30, true);
+    this.image.animations.play('bomb', 10, true);
 
     this.cell.hasBomb = true;
 
@@ -32,9 +32,15 @@ export default class Bomb extends Phaser.Group {
     }, window.bombTimer);
     this.game.field.computeSuccessors();
     this.startScale();
+
+    this.isTriggered = false;
   }
 
   explode() {
+    if (this.isTriggered) {
+      return;
+    }
+    this.isTriggered = true;
     clearTimeout(this.bombTimer);
     this.scene.createExplosion(this.cell);
     this.cell.hasBomb = false;

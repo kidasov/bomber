@@ -71,13 +71,13 @@ export default class Enemy extends Phaser.Group {
       const nextTarget = path[i++];
       const prevTarget = i > 1 ? path[i - 2] : origin;
       if (nextTarget.row - prevTarget.row === 1) {
-        this.image.animations.play('pacman-down', 30, true);
+        this.image.animations.play('pacman-down', 10, true);
       } else if (nextTarget.row - prevTarget.row === -1) {
-        this.image.animations.play('pacman-up', 30, true);
+        this.image.animations.play('pacman-up', 10, true);
       } else if (nextTarget.column - prevTarget.column === 1) {
-        this.image.animations.play('pacman-right', 30, true);
+        this.image.animations.play('pacman-right', 10, true);
       } else if (nextTarget.column - prevTarget.column === -1) {
-        this.image.animations.play('pacman-left', 30, true);
+        this.image.animations.play('pacman-left', 10, true);
       }
 
       this.tween = this.game.add.tween(this.image).to({ x: nextTarget.image.x, y: nextTarget.image.y }, speed);

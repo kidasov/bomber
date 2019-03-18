@@ -102,6 +102,7 @@ class Game extends Phaser.State {
   }
 
   destroyStone(cell) {
+    if (cell.isDestroying) return;
     const { row, column, image } = cell;
 
     const chance = Math.round(Math.random() * 100);
@@ -109,12 +110,16 @@ class Game extends Phaser.State {
     if (chance <= 25) {
       let bonusType = BONUS_TYPE.SCORE;
 
-      const bonusTypeChance = Math.round(Math.random() * 100);
-
-      if (bonusTypeChance > 50 && bonusTypeChance < 75) {
+      if (chance > 0 && chance < 5) {
         bonusType = BONUS_TYPE.EXPLOSION_RADIUS;
-      } else if (bonusTypeChance > 75 && bonusTypeChance < 100) {
+      } else if (chance > 5 && chance <= 10) {
         bonusType = BONUS_TYPE.SPEED;
+      } else if (chance > 10 && chance <= 15) {
+        bonusType = BONUS_TYPE.SCORE_BRONZE;
+      } else if (chance > 15 && chance <= 20) {
+        bonusType = BONUS_TYPE.SCORE_SILVER;
+      } else if (chance > 20 && chance <= 25) {
+        bonusType = BONUS_TYPE.SCORE_GOLD;
       }
 
       const bonus = new Bonus({
@@ -123,6 +128,7 @@ class Game extends Phaser.State {
         cell
       });
       this.bonusGroup.add(bonus.image);
+      cell.isDestroying = true;
 
       const { player: { explosionRadius, maxExplosionRadius, speedBooster, maxSpeedBooster } } = this.game;
 
@@ -146,6 +152,7 @@ class Game extends Phaser.State {
     destroyStoneTween.onComplete.add(() => {
       cell.image.destroy();
       cell.destroy();
+      cell.isDestroying = false;
       this.game.field.cells[row][column] = grassCell;
       this.game.field.computeSuccessors();
     });
@@ -218,7 +225,9 @@ class Game extends Phaser.State {
       });
     });
     this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, (sprite1, sprite2) => {
-      sprite2.bomb.explode();
+      setTimeout(() => {
+        sprite2.bomb.explode();
+      }, 20);
     });
     this.game.physics.arcade.overlap(this.playerGroup, this.bonusGroup, (playerSprite, bonusSprite) => {
       this.takeBonus(bonusSprite.bonus);
