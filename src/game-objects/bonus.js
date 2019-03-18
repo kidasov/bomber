@@ -24,7 +24,7 @@ export default class Bonus extends Phaser.Group {
 
     switch (this.type) {
     case BONUS_TYPE.SPEED: bonusImg = 'bonus-speed.png'; break;
-    case BONUS_TYPE.RADIUS: bonusImg = 'bonus-radius.png'; break;
+    case BONUS_TYPE.EXPLOSION_RADIUS: bonusImg = 'bonus-radius.png'; break;
     case BONUS_TYPE.SCORE: bonusImg = 'bonus-score3.png'; break;
     }
 

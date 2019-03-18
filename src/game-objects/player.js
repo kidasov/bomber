@@ -46,8 +46,9 @@ export default class Player extends Phaser.Group {
 
     this.isDead = false;
     this.speed = 100;
+    this.speedBooster = 0;
     this.explosionRadius = 2;
-    this.maxSpeed = 160;
+    this.maxSpeedBooster = 3;
     this.maxExplosionRadius = 8;
   }
 
@@ -72,22 +73,22 @@ export default class Player extends Phaser.Group {
       let verticalSpeed = 0;
       let animation = null;
       if (this.cursors.left.isDown) {
-        horizontalSpeed -= this.speed;
+        horizontalSpeed -= this.speed + (20 * this.speedBooster);
         animation = 'walk-left';
       }
 
       if (this.cursors.right.isDown) {
-        horizontalSpeed += this.speed;
+        horizontalSpeed += this.speed + (20 * this.speedBooster);
         animation = 'walk-right';
       }
 
       if (this.cursors.up.isDown) {
-        verticalSpeed -= this.speed;
+        verticalSpeed -= this.speed + (20 * this.speedBooster);
         animation = 'walk-up';
       }
 
       if (this.cursors.down.isDown) {
-        verticalSpeed += this.speed;
+        verticalSpeed += this.speed + (20 * this.speedBooster);
         animation = 'walk-down';
       }
 

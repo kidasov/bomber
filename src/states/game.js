@@ -126,9 +126,9 @@ class Game extends Phaser.State {
       });
       this.bonusGroup.add(bonus.image);
 
-      const { player: { explosionRadius, maxExplosionRadius, speed, maxSpeed } } = this.game;
+      const { player: { explosionRadius, maxExplosionRadius, speedBooster, maxSpeedBooster } } = this.game;
 
-      if ((bonus.type === BONUS_TYPE.EXPLOSION_RADIUS && explosionRadius === maxExplosionRadius) || (bonus.type === BONUS_TYPE.SPEED && speed >= maxSpeed)) {
+      if ((bonus.type === BONUS_TYPE.EXPLOSION_RADIUS && explosionRadius === maxExplosionRadius) || (bonus.type === BONUS_TYPE.SPEED && speedBooster >= maxSpeedBooster)) {
         bonus.image.alpha = 0.5;
       }
     }
@@ -181,14 +181,23 @@ class Game extends Phaser.State {
         }
         break;
       case BONUS_TYPE.SPEED:
-        if (this.game.player.speed < this.game.player.maxSpeed) {
-          this.game.player.speed += 20;
+        if (this.game.player.speedBooster < this.game.player.maxSpeedBooster) {
+          this.game.player.speedBooster++;
           bonus.destroy();
         }
         break;
       default: bonus.destroy();
       }
     }
+  }
+
+  checkBonuses() {
+    const { player: { explosionRadius, maxExplosionRadius, speedBooster, maxSpeedBooster } } = this.game;
+    this.bonusGroup.children.forEach(({ bonus }) => {
+      if ((bonus.type === BONUS_TYPE.EXPLOSION_RADIUS && explosionRadius === maxExplosionRadius) || (bonus.type === BONUS_TYPE.SPEED && speedBooster >= maxSpeedBooster)) {
+        bonus.image.alpha = 0.5;
+      }
+    });
   }
 
   update() {
@@ -213,6 +222,7 @@ class Game extends Phaser.State {
     });
 
     this.game.player.move();
+    this.checkBonuses();
 
     const player = this.game.player;
     if (!player.isDead) {
