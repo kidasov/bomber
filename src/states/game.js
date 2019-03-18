@@ -213,22 +213,24 @@ class Game extends Phaser.State {
   update() {
     this.game.physics.arcade.collide(this.stoneGroup, this.playerGroup);
     this.game.physics.arcade.overlap(this.playerGroup, this.enemyGroup, (playerSprite, enemySprite) => {
-      this.destroyPlayer(playerSprite);
-    });
-    this.game.physics.arcade.collide(this.playerGroup, this.bombGroup);
-    this.game.physics.arcade.collide(this.explosionGroup, this.playerGroup, (sprite1, sprite2) => {
       if (!this.game.player.invincible) {
-        this.destroyPlayer(sprite2);
+        this.destroyPlayer(playerSprite);
       }
     });
-    this.game.physics.arcade.collide(this.explosionGroup, this.enemyGroup, (sprite1, sprite2) => {
-      sprite2.enemy.destroy(() => {
+    this.game.physics.arcade.collide(this.playerGroup, this.bombGroup);
+    this.game.physics.arcade.collide(this.explosionGroup, this.playerGroup, (explosionSprite, playerSprite) => {
+      if (!this.game.player.invincible) {
+        this.destroyPlayer(playerSprite);
+      }
+    });
+    this.game.physics.arcade.collide(this.explosionGroup, this.enemyGroup, (explosionSprite, enemySprite) => {
+      enemySprite.enemy.destroy(() => {
         this.enemyKilledText.text = `Enemy killed: ${++this.enemykilled}`;
       });
     });
-    this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, (sprite1, sprite2) => {
+    this.game.physics.arcade.collide(this.explosionGroup, this.bombGroup, (explosionSprite, bombSprite) => {
       setTimeout(() => {
-        sprite2.bomb.explode();
+        bombSprite.bomb.explode();
       }, 20);
     });
     this.game.physics.arcade.overlap(this.playerGroup, this.bonusGroup, (playerSprite, bonusSprite) => {
