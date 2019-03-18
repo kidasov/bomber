@@ -1,3 +1,5 @@
+import { PLAYER_INVINCIBLE_TIME } from '../consts/gameplay';
+
 export default class Player extends Phaser.Group {
   constructor({ scene, cell, collisionGroup }) {
     const { game } = scene;
@@ -50,6 +52,11 @@ export default class Player extends Phaser.Group {
     this.explosionRadius = 2;
     this.maxSpeedBooster = 3;
     this.maxExplosionRadius = 8;
+    this.invincible = true;
+    this.startScale();
+    setTimeout(() => {
+      this.invincible = false;
+    }, PLAYER_INVINCIBLE_TIME);
   }
 
   get currentCell() {
@@ -65,6 +72,22 @@ export default class Player extends Phaser.Group {
     this.image.animations.add('walk-left', [1, 2, 3, 4].map(i => `walk-left${i}.png`));
     this.image.animations.add('walk-up', [1, 2, 3, 4].map(i => `walk-up${i}.png`));
     this.image.animations.add('walk-down', [1, 2, 3, 4].map(i => `walk-down${i}.png`));
+  }
+
+  startScale() {
+    if (this.invincible) {
+      const fadeOutTween = this.game.add.tween(this.image).to({ alpha: 0.5 }, 400, 'Linear', true);
+      fadeOutTween.onComplete.add(() => {
+        if (this.invincible) {
+          const fadeInTween = this.game.add.tween(this.image).to({ alpha: 1 }, 400, 'Linear', true);
+          fadeInTween.onComplete.add(() => { this.startScale(); });
+        } else {
+          this.image.alpha = 1;
+        }
+      });
+    } else {
+      this.image.alpha = 1;
+    }
   }
 
   move() {

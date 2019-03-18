@@ -217,7 +217,9 @@ class Game extends Phaser.State {
     });
     this.game.physics.arcade.collide(this.playerGroup, this.bombGroup);
     this.game.physics.arcade.collide(this.explosionGroup, this.playerGroup, (sprite1, sprite2) => {
-      this.destroyPlayer(sprite2);
+      if (!this.game.player.invincible) {
+        this.destroyPlayer(sprite2);
+      }
     });
     this.game.physics.arcade.collide(this.explosionGroup, this.enemyGroup, (sprite1, sprite2) => {
       sprite2.enemy.destroy(() => {
@@ -237,7 +239,7 @@ class Game extends Phaser.State {
     this.checkBonuses();
 
     const player = this.game.player;
-    if (!player.isDead) {
+    if (!player.isDead && !player.invincible) {
       const playerX = player.image.x;
       const playerY = player.image.y;
       this.game.enemies.data.forEach(enemy => {
