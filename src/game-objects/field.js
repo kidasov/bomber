@@ -15,7 +15,6 @@ export default class Field extends Phaser.Group {
     this.game.add.existing(this);
 
     this.cells = [];
-    this.gap = this.game.getExactValue(0);
     this.draw();
   }
 
@@ -37,8 +36,8 @@ export default class Field extends Phaser.Group {
     const total = this.rows * this.columns * 0.3;
 
     for (let k = 0; k < total; k++) {
-      const pattern = patterns[Math.floor(Math.random() * patterns.length)];
-      const x = Math.floor(Math.random() * (this.columns - pattern[0].length + 1));
+      const pattern = patterns[0];
+      const x = Math.floor(Math.random() * (this.columns - pattern.length + 1));
       const y = Math.floor(Math.random() * (this.rows - pattern.length + 1));
       for (let i = 0; i < pattern.length; i++) {
         for (let j = 0; j < pattern[i].length; j++) {
@@ -248,7 +247,6 @@ export default class Field extends Phaser.Group {
           sInfo.h = hNew;
           sInfo.parent = p;
         }
-        // debugger;
       }
     }
 

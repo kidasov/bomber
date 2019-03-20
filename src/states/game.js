@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
 import Field from '../game-objects/field';
 import Player from '../game-objects/player';
-import Enemies from '../game-objects/enemies';
 import Bomb from '../game-objects/bomb';
 import Explosion from '../game-objects/explosion';
 import BCell, { BCELL_TYPE } from '../game-objects/bcell';
 import { BOMB_TIMER } from '../consts/gameplay';
 import Bonus, { BONUS_TYPE } from '../game-objects/bonus';
+import Enemy from '../game-objects/enemy';
 
 class Game extends Phaser.State {
   init() {}
@@ -21,21 +21,13 @@ class Game extends Phaser.State {
     window.game = this;
 
     this.grassGroup = this.game.add.group();
-    this.stoneGroup = this.game.add.group();
-    this.enemyGroup = this.game.add.group();
     this.playerGroup = this.game.add.group();
+    this.enemyGroup = this.game.add.group();
     this.bombGroup = this.game.add.group();
     this.bonusGroup = this.game.add.group();
     this.explosionGroup = this.game.add.group();
+    this.stoneGroup = this.game.add.group();
     this.game.forceSingleUpdate = false;
-    this.allGroup = this.game.add.group();
-    this.allGroup.add(this.grassGroup);
-    this.allGroup.add(this.playerGroup);
-    this.allGroup.add(this.enemyGroup);
-    this.allGroup.add(this.bombGroup);
-    this.allGroup.add(this.bonusGroup);
-    this.allGroup.add(this.explosionGroup);
-    this.allGroup.add(this.stoneGroup);
 
     this.game.field = new Field({
       scene: this,
@@ -49,31 +41,28 @@ class Game extends Phaser.State {
 
     this.game.player = new Player({
       scene: this,
-      cell: grassCell,
-      collisionGroup: this.playerGroup
+      cell: grassCell
     });
-
+    this.playerGroup.add(this.game.player.image);
     this.game.camera.follow(this.game.player.image);
 
-    for (let i = 0; i < this.game.field.cells.length; i++) {
-      for (let j = 0; j < this.game.field.cells[i].length; j++) {
-        if (this.game.field.cells[i][j].image.body) {
-          this.stoneGroup.add(this.game.field.cells[i][j].image);
+    this.game.field.cells.forEach(row => {
+      row.forEach(cell => {
+        if (cell.image.body) {
+          this.stoneGroup.add(cell.image);
         } else {
-          this.grassGroup.add(this.game.field.cells[i][j].image);
+          this.grassGroup.add(cell.image);
         }
-      }
-    }
-
-    this.game.enemies = new Enemies({
-      game: this.game
+      });
     });
 
     window.addEnemies = count => {
       for (let i = 0; i < count; i++) {
-        this.game.enemies.addEnemy(this.game.field.randomGrassCell);
-        const index = this.game.enemies.data.length - 1;
-        this.enemyGroup.add(this.game.enemies.data[index].image);
+        const enemy = new Enemy({
+          game: this.game,
+          cell: this.game.field.randomGrassCell
+        });
+        this.enemyGroup.add(enemy.image);
       }
     };
 
@@ -247,7 +236,7 @@ class Game extends Phaser.State {
     if (!player.isDead && !player.invincible) {
       const playerX = player.image.x;
       const playerY = player.image.y;
-      this.game.enemies.data.forEach(enemy => {
+      this.enemyGroup.children.forEach(({ enemy }) => {
         const enemyX = enemy.image.x;
         const enemyY = enemy.image.y;
         const dx = playerX - enemyX;

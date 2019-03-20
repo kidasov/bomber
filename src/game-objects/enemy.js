@@ -1,3 +1,5 @@
+import { ENEMY_SETTINGS } from '../consts/gameplay';
+
 export default class Enemy extends Phaser.Group {
   constructor({ game, cell, collisionGroup }) {
     super(game);
@@ -12,7 +14,6 @@ export default class Enemy extends Phaser.Group {
     this.addAnimations();
     this.image.body.fixedRotation = true;
     this.image.enemy = this;
-    this.image.body.onWorldBounds = new Phaser.Signal();
 
     const radius = 12;
 
@@ -45,13 +46,13 @@ export default class Enemy extends Phaser.Group {
     let speed = null;
     if (this.playerTarget && !this.isSameCoordinate(origin.image, this.playerTarget.image)) {
       this.target = this.playerTarget;
-      speed = 400;
+      speed = ENEMY_SETTINGS.IDLE_SPEED;
       path = this.game.field.aStar(origin, this.target);
     }
 
     if (path === null) {
       this.playerTarget = null;
-      speed = 900;
+      speed = ENEMY_SETTINGS.MAX_SPEED;
       const reachableCells = this.game.field.getReachableCells(origin);
       this.target = reachableCells[Math.floor(Math.random() * reachableCells.length)];
       path = this.game.field.dfs(origin, this.target);

@@ -1,4 +1,4 @@
-import { PLAYER_INVINCIBLE_TIME } from '../consts/gameplay';
+import { PLAYER_SETTINGS } from '../consts/gameplay';
 
 export default class Player extends Phaser.Group {
   constructor({ scene, cell, collisionGroup }) {
@@ -28,7 +28,6 @@ export default class Player extends Phaser.Group {
     this.image.anchor.setTo(0.5);
 
     this.image.body.fixedRotation = true;
-    this.collisionGroup.add(this.image);
 
     this.cursors = this.game.input.keyboard.createCursorKeys();
     game.input.keyboard.addCallbacks(this, ({ keyCode }) => {
@@ -37,26 +36,20 @@ export default class Player extends Phaser.Group {
           this.scene.dropBomb(this.currentCell);
         }
       }
-    }, ({ keyCode }) => {
-      if (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40) {
-        this.image.animations.stop('walk-left');
-        this.image.animations.stop('walk-right');
-        this.image.animations.stop('walk-up');
-        this.image.animations.stop('walk-down');
-      }
     });
 
     this.isDead = false;
-    this.speed = 100;
-    this.speedBooster = 0;
-    this.explosionRadius = 2;
-    this.maxSpeedBooster = 3;
-    this.maxExplosionRadius = 8;
     this.invincible = true;
+
+    this.speed = PLAYER_SETTINGS.BASE_SPEED;
+    this.speedBooster = PLAYER_SETTINGS.BASE_SPEED_MULTIPLIER;
+    this.explosionRadius = PLAYER_SETTINGS.BASE_EXPLOSION_MULTIPLIER;
+    this.maxSpeedBooster = PLAYER_SETTINGS.MAX_SPEED_MULTIPLIER;
+    this.maxExplosionRadius = PLAYER_SETTINGS.MAX_EXPLOSION_MULTIPLIER;
     this.startScale();
     setTimeout(() => {
       this.invincible = false;
-    }, PLAYER_INVINCIBLE_TIME);
+    }, PLAYER_SETTINGS.SPAWN_TIME);
   }
 
   get currentCell() {
@@ -96,22 +89,22 @@ export default class Player extends Phaser.Group {
       let verticalSpeed = 0;
       let animation = null;
       if (this.cursors.left.isDown) {
-        horizontalSpeed -= this.speed + (20 * this.speedBooster);
+        horizontalSpeed -= this.speed + (PLAYER_SETTINGS.SPEED_BOOSTER * this.speedBooster);
         animation = 'walk-left';
       }
 
       if (this.cursors.right.isDown) {
-        horizontalSpeed += this.speed + (20 * this.speedBooster);
+        horizontalSpeed += this.speed + (PLAYER_SETTINGS.SPEED_BOOSTER * this.speedBooster);
         animation = 'walk-right';
       }
 
       if (this.cursors.up.isDown) {
-        verticalSpeed -= this.speed + (20 * this.speedBooster);
+        verticalSpeed -= this.speed + (PLAYER_SETTINGS.SPEED_BOOSTER * this.speedBooster);
         animation = 'walk-up';
       }
 
       if (this.cursors.down.isDown) {
-        verticalSpeed += this.speed + (20 * this.speedBooster);
+        verticalSpeed += this.speed + (PLAYER_SETTINGS.SPEED_BOOSTER * this.speedBooster);
         animation = 'walk-down';
       }
 
